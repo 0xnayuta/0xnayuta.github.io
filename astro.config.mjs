@@ -58,47 +58,4 @@ export default defineConfig({
       }),
     },
   },
-  experimental: {
-    preserveScriptOrder: true,
-    fonts: [
-      {
-        provider: "local",
-        name: "HarmonyOS",
-        cssVariable: "--font-harmonyos",
-        // local fonts require explicit variants (weight/style/src)
-        variants: [
-          {
-            weight: 400,
-            style: "normal",
-            src: ["./src/assets/fonts/HarmonyOS.woff2"],
-            // control font-display behavior
-            display: "swap",
-          },
-        ],
-        // sensible fallbacks to use while the custom font loads or if unavailable
-        fallbacks: ["system-ui", "Segoe UI", "Helvetica Neue", "Arial"],
-        // let Astro generate optimized fallback metrics (default: true)
-        optimizedFallbacks: true,
-      },
-      {
-        provider: "local",
-        name: "RobotoMono",
-        cssVariable: "--font-roboto-mono",
-        // local fonts require explicit variants (weight/style/src)
-        variants: [
-          {
-            weight: 400,
-            style: "normal",
-            src: ["./src/assets/fonts/RobotoMono.woff2"],
-            // control font-display behavior
-            display: "swap",
-          },
-        ],
-        // sensible fallbacks to use while the custom font loads or if unavailable
-        fallbacks: ["system-ui", "Segoe UI", "Helvetica Neue", "Arial"],
-        // let Astro generate optimized fallback metrics (default: true)
-        optimizedFallbacks: true,
-      },
-    ],
-  }
 });

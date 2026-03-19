@@ -1,6 +1,5 @@
 ---
 import { ClientRouter } from "astro:transitions";
-import { Font } from "astro:assets";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 import { SITE } from "@/config";
 import "@/styles/global.css";
@@ -136,9 +135,6 @@ const structuredData = {
     }
 
     <ClientRouter />
-
-    <!-- Ensure experimental local font CSS variables are emitted -->
-    <Font cssVariable="--font-roboto-mono" />
 
     <script is:inline src="/toggle-theme.js"></script>
   </head>
