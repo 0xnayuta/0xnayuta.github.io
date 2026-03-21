@@ -2,7 +2,6 @@
 import Hr from "./Hr.astro";
 import Socials from "./Socials.astro";
 import { SITE } from "@/config";
-/* import SakanaWidget from '../components/SakanaWidget.astro'; */
 
 const currentYear = new Date().getFullYear();
 
@@ -12,8 +11,6 @@ export interface Props {
 
 const { noMarginTop = false } = Astro.props;
 ---
-
-<!-- <SakanaWidget /> -->
 
 <footer class:list={["w-full", { "mt-auto": !noMarginTop }]}>
   <Hr noPadding />
