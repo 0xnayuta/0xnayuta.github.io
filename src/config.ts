@@ -1,7 +1,7 @@
 export const SITE = {
-  website: "https://wangyan-life.github.io", // 部署后的网站地址
-  author: "Wangyan",
-  profile: "https://github.com/wangyan-life",
+  website: "https://0xnayuta.github.io", // 部署后的网站地址
+  author: "Izayoi Nayuta",
+  profile: "https://github.com/0xnayuta",
   desc: "一个极简、响应式且对 SEO 友好的 Astro 博客主题。",
   title: "青枫江上",
 
@@ -20,7 +20,7 @@ export const SITE = {
   editPost: {
     enabled: true,
     text: "编辑文章",
-    url: "https://github.com/wangyan-life/wangyan-life.github.io/edit/main/",
+    url: "https://github.com/0xnayuta/0xnayuta.github.io/edit/main/",
   },
 
   dynamicOgImage: true, // 是否启用动态 Open Graph 图片生成

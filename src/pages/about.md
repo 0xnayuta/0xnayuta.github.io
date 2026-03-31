@@ -35,8 +35,8 @@ title: "关于"
 
 * **关注领域：** Python、C++ 以及前端开发。
 * **业余项目：** 我对 AI 工具很感兴趣，也喜欢动手解决实际问题。
-  * <a href="https://github.com/wangyan-life/rutracker-chinese" target="_blank">rutracker-chinese</a>：一个篡改猴插件，用来实现对 rutracker 网站的（机翻）中文化。
-  * <a href="https://github.com/wangyan-life/devpiano" target="_blank">devpiano</a>：一个能让你用电脑键盘弹琴的小工具，甚至可以加载 MIDI 文件实现自动演奏和改变音色。
+  * <a href="https://github.com/0xnayuta/rutracker-chinese" target="_blank">rutracker-chinese</a>：一个篡改猴插件，用来实现对 rutracker 网站的（机翻）中文化。
+  * <a href="https://github.com/0xnayuta/devpiano" target="_blank">devpiano</a>：一个能让你用电脑键盘弹琴的小工具，甚至可以加载 MIDI 文件实现自动演奏和改变音色。
 * **游戏与编程：** 我认为这两者是相通的。玩游戏时遇到电脑问题、或者想打 MOD，都离不开技术。我甚至会为了玩游戏而专门写笔记，方便自己快速查找资料。
 
 ### 关于「本站」与我
