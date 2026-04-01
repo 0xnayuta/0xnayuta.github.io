@@ -25,7 +25,7 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
   <main id="main-content" data-layout="index">
     <section id="hero" class="pt-8 pb-6">
       <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Ciallo～(∠・ω&lt; )⌒★
+        Ciallo~(∠・ω&lt; )⌒★
       </h1>
       <a
         target="_blank"
@@ -44,11 +44,11 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 
   <p id="hitokoto" class="hitokoto w-full" role="status" aria-live="polite">
         <span class="hitokoto-text block w-full text-base">
-          <span class="hitokoto-quote text-2xl align-top mr-2">“</span>
-          <span class="hitokoto-inner">Loading...</span>
-          <span class="hitokoto-quote text-2xl align-top ml-2">”</span>
+          <span class="hitokoto-quote text-2xl align-top mr-2">"</span>
+          <span class="hitokoto-inner">世界上只有一种真正的英雄主义,那就是在认清生活的真相之后,依然热爱生活。</span>
+          <span class="hitokoto-quote text-2xl align-top ml-2">"</span>
         </span>
-        <span class="hitokoto-from block w-full text-end mt-3"></span>
+        <span class="hitokoto-from block w-full text-end mt-3"> -- 罗曼·罗兰</span>
       </p>
 
       {
@@ -116,15 +116,67 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 </script>
 
 <script>
-  // Fetch a single sentence (一言) from hitokoto and insert into the DOM on page load
+  // Fetch a single sentence (一言) from hitokoto with localStorage cache
   document.addEventListener("astro:page-load", async () => {
     const container = document.querySelector('#hitokoto');
     if (!container) return;
 
-  const textWrapper = container.querySelector('.hitokoto-text');
-  const innerEl = container.querySelector('.hitokoto-inner');
-  const fromEl = container.querySelector('.hitokoto-from');
+    const textWrapper = container.querySelector('.hitokoto-text');
+    const innerEl = container.querySelector('.hitokoto-inner');
+    const fromEl = container.querySelector('.hitokoto-from');
 
+    const CACHE_KEY = 'hitokoto_cache';
+    const CACHE_TIME_KEY = 'hitokoto_cache_time';
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 分钟缓存
+
+    // 显示一言内容
+    function displayHitokoto(sentence: string, source: string) {
+      if (innerEl && innerEl instanceof HTMLElement) {
+        innerEl.textContent = sentence;
+      }
+      if (textWrapper && textWrapper instanceof HTMLElement) {
+        textWrapper.classList.remove('fade-in');
+        textWrapper.offsetHeight; // trigger reflow
+        textWrapper.classList.add('fade-in');
+      }
+      if (fromEl && fromEl instanceof HTMLElement) {
+        fromEl.textContent = source ? ` —— ${source}` : '';
+        fromEl.classList.remove('fade-in');
+        fromEl.offsetHeight;
+        fromEl.classList.add('fade-in');
+      }
+    }
+
+    // 尝试从缓存加载
+    function loadFromCache(): { sentence: string; source: string } | null {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+        if (cached && cachedTime) {
+          const age = Date.now() - parseInt(cachedTime, 10);
+          if (age < CACHE_DURATION) {
+            return JSON.parse(cached);
+          }
+        }
+      } catch { /* ignore */ }
+      return null;
+    }
+
+    // 保存到缓存
+    function saveToCache(sentence: string, source: string) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ sentence, source }));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+      } catch { /* ignore */ }
+    }
+
+    // 先显示缓存内容（如果有）
+    const cached = loadFromCache();
+    if (cached) {
+      displayHitokoto(cached.sentence, cached.source);
+    }
+
+    // 后台请求新内容
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
@@ -138,30 +190,13 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
       const sentence = data.hitokoto || data.sentence || '';
       const source = data.from || data.from_who || '';
 
-      if (innerEl && innerEl instanceof HTMLElement) {
-        innerEl.textContent = sentence;
+      // 只有内容不同时才更新显示
+      if (!cached || cached.sentence !== sentence) {
+        displayHitokoto(sentence, source);
       }
-      if (textWrapper && textWrapper instanceof HTMLElement) {
-        textWrapper.classList.remove('fade-in');
-        // trigger reflow then re-add to restart animation
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        textWrapper.offsetHeight;
-        textWrapper.classList.add('fade-in');
-      }
-      if (fromEl) {
-        // place plain source text (no leading dash); styling will right-align
-        fromEl.textContent = source ? ` —— ${source}` : '';
-        if (fromEl instanceof HTMLElement) {
-          fromEl.classList.remove('fade-in');
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-          fromEl.offsetHeight;
-          fromEl.classList.add('fade-in');
-        }
-      }
+      saveToCache(sentence, source);
     } catch {
-      if (innerEl && innerEl instanceof HTMLElement) innerEl.textContent = 'Loading failed.';
-      if (fromEl && fromEl instanceof HTMLElement) fromEl.textContent = '';
-      // intentionally silent in production
+      // API 失败时保持当前内容（默认或缓存）
     }
   });
 </script>
