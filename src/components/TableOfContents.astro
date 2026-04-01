@@ -1,240 +1,135 @@
 ---
 // Client-side table of contents. Scans #article for h2-h4 headings,
 // generates links, and enables smooth scrolling.
-// Hydration: client:load to build after content is mounted
 ---
 
 <nav id="toc" class="prose-sm">
   <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">目录</h2>
-  <ul class="space-y-1"></ul>
+  <ul class="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto"></ul>
 </nav>
 
-<script is:inline>
-  (() => {
-    const TOP_OFFSET = 96; // matches top-24
-    const CLEANUP_KEY = "__tocCleanup";
+<script>
+  function slugify(s: string): string {
+    return s
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^\w\-\s]/g, "")
+      .replace(/\s+/g, "-");
+  }
 
-    function slugify(s) {
-      return s
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/[^\w\-\s]/g, "")
-        .replace(/\s+/g, "-");
+  function addHeadingLinks() {
+    const headings = document.querySelectorAll(
+      "#article h2, #article h3, #article h4, #article h5, #article h6"
+    );
+    headings.forEach((heading) => {
+      if (heading.querySelector(".heading-link")) return;
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+      const el = heading as HTMLElement;
+      if (!el.id || el.id.trim() === "") {
+        el.id = slugify(el.innerText || el.textContent || "");
+      }
+      link.href = "#" + el.id;
+      link.setAttribute("aria-label", "复制链接");
+      heading.appendChild(link);
+    });
+  }
+
+  function initTOC() {
+    const container = document.getElementById("toc");
+    if (!container) return;
+
+    const list = container.querySelector("ul");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    const article = document.getElementById("article");
+    if (!article) {
+      container.style.display = "none";
+      return;
     }
 
-    // Add heading permalinks
-    function addHeadingLinks() {
-      const headings = Array.from(
-        document.querySelectorAll('#article h2, #article h3, #article h4, #article h5, #article h6')
-      );
-      for (const heading of headings) {
-        if (heading.querySelector('.heading-link')) continue;
-        heading.classList.add('group');
-        const link = document.createElement('a');
-        link.className = 'heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100';
-        if (!heading.id || heading.id.trim() === '') {
-          heading.id = slugify(heading.innerText || heading.textContent || '');
-        }
-        link.href = '#' + heading.id;
-        link.setAttribute('aria-label', '复制链接');
-        heading.appendChild(link);
+    addHeadingLinks();
+
+    const headingEls = article.querySelectorAll("h2, h3, h4");
+    const headings: { id: string; text: string; level: number }[] = [];
+
+    headingEls.forEach((h) => {
+      const el = h as HTMLElement;
+      if (!el.id || el.id.trim() === "") {
+        el.id = slugify(el.innerText || el.textContent || "");
       }
-    }
-    const initTOC = () => {
-      if (typeof window === "undefined") return;
-
-      if (window[CLEANUP_KEY]) {
-        window[CLEANUP_KEY]();
-        window[CLEANUP_KEY] = undefined;
-      }
-
-      const container = document.getElementById("toc");
-      if (!container) return;
-      const list = container.querySelector("ul");
-      if (!list) return;
-
-      container.style.display = "";
-      list.innerHTML = "";
-
-      const article = document.getElementById('article');
-      if (!article) {
-        container.style.display = 'none';
-        return;
-      }
-
-      const aside = container.closest('aside');
-      const stickyEl = aside ? aside.querySelector('.sticky') : null;
-      if (!stickyEl || !aside) {
-        container.style.display = 'none';
-        return;
-      }
-
-      if (aside) {
-        aside.style.height = '';
-      }
-
-      addHeadingLinks();
-
-      const headings = Array.from(document.querySelectorAll('#article h2, #article h3, #article h4'))
-        .map(h => {
-          if (!h.id || h.id.trim() === '') {
-            h.id = slugify(h.innerText || h.textContent || '');
-          }
-          return { id: h.id, text: h.innerText || h.textContent || '', level: parseInt(h.tagName.replace('H','')) };
-        });
-
-      if (!headings.length) {
-        container.style.display = 'none';
-        return;
-      }
-
-      headings.forEach(({ id, text, level }) => {
-        const li = document.createElement('li');
-        li.style.paddingLeft = `${Math.max(0, (level - 2) * 12)}px`;
-        const a = document.createElement('a');
-        a.href = `#${id}`;
-        a.textContent = text;
-        a.className = 'text-sm hover:underline block text-foreground/80 transition-colors';
-        li.appendChild(a);
-        list.appendChild(li);
+      headings.push({
+        id: el.id,
+        text: el.innerText || el.textContent || "",
+        level: parseInt(el.tagName.replace("H", "")),
       });
+    });
 
-      function measureAside() {
-        if (!article) return { left: null, width: null };
-        const artRect = article.getBoundingClientRect();
-        const asideStyle = window.getComputedStyle(aside);
-        const ml = parseFloat(asideStyle.marginLeft) || 24;
-        const left = artRect.right + ml;
-        const width = aside.offsetWidth || parseFloat(asideStyle.width) || null;
-        return { left, width };
-      }
+    if (!headings.length) {
+      container.style.display = "none";
+      return;
+    }
 
-      const tocLinks = Array.from(list.querySelectorAll('a'));
-      const headingElements = headings.map(h => document.getElementById(h.id)).filter(Boolean);
+    container.style.display = "";
 
-      function getDocumentY(el) {
+    headings.forEach(({ id, text, level }) => {
+      const li = document.createElement("li");
+      li.style.paddingLeft = `${Math.max(0, (level - 2) * 12)}px`;
+      const a = document.createElement("a");
+      a.href = `#${id}`;
+      a.textContent = text;
+      a.className =
+        "text-sm hover:underline block text-foreground/80 transition-colors py-0.5";
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    const tocLinks = Array.from(list.querySelectorAll("a"));
+    const headingElements = headings
+      .map((h) => document.getElementById(h.id))
+      .filter(Boolean);
+
+    function onScroll() {
+      let currentIndex = -1;
+      for (let i = 0; i < headingElements.length; i++) {
+        const el = headingElements[i];
+        if (!el) continue;
         const rect = el.getBoundingClientRect();
-        return rect.top + window.scrollY;
+        if (rect.top <= 100) currentIndex = i;
       }
-
-      function setFixedTop() {
-        const m = measureAside();
-        stickyEl.style.position = 'fixed';
-        stickyEl.style.top = TOP_OFFSET + 'px';
-        stickyEl.style.bottom = 'auto';
-        if (m.left !== null) stickyEl.style.left = m.left + 'px';
-        if (m.width !== null) stickyEl.style.width = m.width + 'px';
-        stickyEl.style.zIndex = '10';
-      }
-
-      function setAbsoluteTop(px) {
-        const m = measureAside();
-        stickyEl.style.position = 'absolute';
-        const offsetWithinAside = px - (aside.offsetTop || 0);
-        stickyEl.style.top = offsetWithinAside + 'px';
-        stickyEl.style.bottom = 'auto';
-        stickyEl.style.left = 'auto';
-        if (m.width !== null) stickyEl.style.width = m.width + 'px';
-        stickyEl.style.zIndex = '';
-      }
-
-      function resetSticky() {
-        stickyEl.style.position = '';
-        stickyEl.style.top = '';
-        stickyEl.style.bottom = '';
-        stickyEl.style.left = '';
-        stickyEl.style.width = '';
-        stickyEl.style.zIndex = '';
-      }
-
-      let ticking = false;
-
-      const onScroll = () => {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(() => {
-          aside.style.height = article.offsetHeight + 'px';
-          const tocH = stickyEl.offsetHeight;
-
-          const articleTopDoc = getDocumentY(article);
-          const articleHeight = article.offsetHeight;
-          const stickyHeight = tocH;
-          const fixStart = articleTopDoc - TOP_OFFSET;
-          const fixEnd = articleTopDoc + articleHeight - stickyHeight - TOP_OFFSET;
-
-          if (window.scrollY < fixStart) {
-            resetSticky();
-            stickyEl.style.position = 'absolute';
-            stickyEl.style.top = '0px';
-          } else if (window.scrollY > fixEnd) {
-            const maxTop = Math.max(0, articleHeight - stickyHeight);
-            setAbsoluteTop(article.offsetTop + maxTop);
-          } else {
-            setFixedTop();
-          }
-
-          let currentIndex = -1;
-          for (let i = 0; i < headingElements.length; i++) {
-            const el = headingElements[i];
-            if (!el) continue;
-            const rect = el.getBoundingClientRect();
-            if (rect.top <= 100) currentIndex = i;
-          }
-          tocLinks.forEach((link, idx) => {
-            const isActive = idx === currentIndex;
-            link.classList.toggle('text-accent', isActive);
-            link.classList.toggle('font-semibold', isActive);
-            link.classList.toggle('text-foreground/80', !isActive);
-            if (isActive) {
-              link.setAttribute('aria-current', 'true');
-            } else {
-              link.removeAttribute('aria-current');
-            }
-          });
-
-          ticking = false;
-        });
-      };
-
-      const onResize = () => {
-        stickyEl.style.left = '';
-        stickyEl.style.width = '';
-        stickyEl.style.position = '';
-        onScroll();
-      };
-
-      list.addEventListener('click', function (e) {
-        const a = e.target.closest('a');
-        if (!a) return;
-        e.preventDefault();
-        const id = a.getAttribute('href').slice(1);
-        const target = document.getElementById(id);
-        if (!target) return;
-        const y = target.getBoundingClientRect().top + window.scrollY - 16;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-        history.replaceState(history.state, '', `#${id}`);
+      tocLinks.forEach((link, idx) => {
+        const isActive = idx === currentIndex;
+        link.classList.toggle("text-accent", isActive);
+        link.classList.toggle("font-semibold", isActive);
+        link.classList.toggle("text-foreground/80", !isActive);
       });
-
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onResize);
-
-      window[CLEANUP_KEY] = () => {
-        window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onResize);
-      };
-
-      onScroll();
-    };
-
-    const scheduleInit = () => requestAnimationFrame(initTOC);
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', scheduleInit, { once: true });
-    } else {
-      scheduleInit();
     }
 
-    document.addEventListener('astro:page-load', scheduleInit);
-  })();
+    list.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement).closest("a");
+      if (!a) return;
+      e.preventDefault();
+      const id = a.getAttribute("href")?.slice(1);
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const y = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      history.replaceState(history.state, "", "#" + id);
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  // Run on initial load
+  initTOC();
+
+  // Re-run on Astro page transitions
+  document.addEventListener("astro:after-swap", initTOC);
 </script>
