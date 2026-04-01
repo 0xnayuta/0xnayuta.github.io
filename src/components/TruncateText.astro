@@ -1,0 +1,129 @@
+---
+/**
+ * 使用 pretext 进行智能文本截断的组件
+ * 在客户端测量并截断文本到指定行数
+ */
+
+interface Props {
+  text: string;
+  maxLines?: number;
+  class?: string;
+}
+
+const { text, maxLines = 2, class: className = "" } = Astro.props;
+---
+
+<p
+  class:list={["truncate-text", className]}
+  data-full-text={text}
+  data-max-lines={maxLines}
+>
+  {text}
+</p>
+
+<script>
+  import { prepare, layout } from "@chenglou/pretext";
+
+  function truncateText(element: HTMLElement) {
+    const fullText = element.dataset.fullText || "";
+    const maxLines = parseInt(element.dataset.maxLines || "2", 10);
+
+    if (!fullText) return;
+
+    // 获取元素的计算样式
+    const styles = getComputedStyle(element);
+    const fontFamily = styles.fontFamily;
+    const fontSize = parseFloat(styles.fontSize);
+    const lineHeight = parseFloat(styles.lineHeight) || fontSize * 1.5;
+    const width = element.clientWidth;
+
+    if (width <= 0) return;
+
+    // 构建 font 字符串（CSS font shorthand 格式）
+    const font = `${fontSize}px ${fontFamily}`;
+
+    try {
+      // 使用 pretext 预处理文本
+      const prepared = prepare(fullText, font);
+
+      // 计算布局：layout(prepared, maxWidth, lineHeight)
+      const result = layout(prepared, width, lineHeight);
+
+      // 如果行数超过限制，需要截断
+      if (result.lineCount > maxLines) {
+        // 计算目标高度（maxLines 行的高度）
+        const targetHeight = maxLines * lineHeight;
+
+        // 二分查找合适的截断位置
+        let low = 0;
+        let high = fullText.length;
+        let bestLength = 0;
+
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          const testText = fullText.slice(0, mid) + "...";
+
+          const testPrepared = prepare(testText, font);
+          const testResult = layout(testPrepared, width, lineHeight);
+
+          if (testResult.lineCount <= maxLines) {
+            bestLength = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+
+        // 尝试在单词/标点边界截断
+        let truncateAt = bestLength;
+        const searchStart = Math.max(0, bestLength - 20);
+        const searchRange = fullText.slice(searchStart, bestLength);
+        const lastBreak = Math.max(
+          searchRange.lastIndexOf("。"),
+          searchRange.lastIndexOf("，"),
+          searchRange.lastIndexOf("、"),
+          searchRange.lastIndexOf(" "),
+          searchRange.lastIndexOf(".")
+        );
+
+        if (lastBreak > 0) {
+          truncateAt = searchStart + lastBreak + 1;
+        }
+
+        element.textContent = fullText.slice(0, truncateAt).trim() + "...";
+      }
+    } catch (e) {
+      // pretext 失败时回退到 CSS 截断
+      console.warn("pretext truncation failed, using CSS fallback", e);
+      element.style.display = "-webkit-box";
+      element.style.setProperty("-webkit-line-clamp", String(maxLines));
+      element.style.setProperty("-webkit-box-orient", "vertical");
+      element.style.overflow = "hidden";
+    }
+  }
+
+  function initTruncation() {
+    document.querySelectorAll(".truncate-text").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        truncateText(el);
+      }
+    });
+  }
+
+  // 初始化
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTruncation);
+  } else {
+    initTruncation();
+  }
+
+  // Astro 页面切换后重新初始化
+  document.addEventListener("astro:page-load", initTruncation);
+
+  // 窗口大小变化时重新计算
+  let resizeTimeout: ReturnType<typeof setTimeout>;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(initTruncation, 200);
+  });
+</script>
