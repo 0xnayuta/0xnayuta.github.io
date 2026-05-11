@@ -136,13 +136,13 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
       }
       if (textWrapper && textWrapper instanceof HTMLElement) {
         textWrapper.classList.remove('fade-in');
-        textWrapper.offsetHeight; // trigger reflow
+        void textWrapper.offsetHeight; // trigger reflow
         textWrapper.classList.add('fade-in');
       }
       if (fromEl && fromEl instanceof HTMLElement) {
         fromEl.textContent = source ? ` —— ${source}` : '';
         fromEl.classList.remove('fade-in');
-        fromEl.offsetHeight;
+        void fromEl.offsetHeight;
         fromEl.classList.add('fade-in');
       }
     }

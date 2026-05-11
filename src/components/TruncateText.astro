@@ -52,7 +52,6 @@ const { text, maxLines = 2, class: className = "" } = Astro.props;
       // 如果行数超过限制，需要截断
       if (result.lineCount > maxLines) {
         // 计算目标高度（maxLines 行的高度）
-        const targetHeight = maxLines * lineHeight;
 
         // 二分查找合适的截断位置
         let low = 0;
@@ -92,9 +91,8 @@ const { text, maxLines = 2, class: className = "" } = Astro.props;
 
         element.textContent = fullText.slice(0, truncateAt).trim() + "...";
       }
-    } catch (e) {
+    } catch {
       // pretext 失败时回退到 CSS 截断
-      console.warn("pretext truncation failed, using CSS fallback", e);
       element.style.display = "-webkit-box";
       element.style.setProperty("-webkit-line-clamp", String(maxLines));
       element.style.setProperty("-webkit-box-orient", "vertical");

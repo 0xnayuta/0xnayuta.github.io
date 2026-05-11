@@ -18,7 +18,7 @@ const normalizeHref = (href?: string | null) => {
     // Ensure trailing slash consistency
     const cleaned = String(href);
     return cleaned.replace(/\/page\/1\/?$/i, "/");
-  } catch (e) {
+  } catch {
     return href as string;
   }
 };
