@@ -6,7 +6,7 @@ export const SITE = {
   title: "青枫江上",
 
   // 可配置的 Breadcrumb 路由名映射，用于控制 src\components\Breadcrumb.astro 中的静态路径显示文本
-    // breadcrumbNames 已移至 src/i18n/index.ts 管理（更便于国际化）
+  // breadcrumbNames 已移至 src/i18n/index.ts 管理（更便于国际化）
 
   ogImage: "socialcard.png", // 位于 public/ 下的 Open Graph 图片路径
   lightAndDarkMode: true,
@@ -15,7 +15,7 @@ export const SITE = {
   scheduledPostMargin: 15 * 60 * 1000, // 15 分钟
   showArchives: true,
   showBackButton: true, // 在文章详情页显示返回按钮
-  
+
   // 编辑文章链接配置，enabled 为 true 则显示“编辑文章”按钮
   editPost: {
     enabled: true,

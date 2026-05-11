@@ -42,7 +42,7 @@ export function stripMarkdown(markdown: string): string {
 // 从正文提取摘要（前 N 个字符）
 export function extractExcerpt(
   markdown: string,
-  maxLength: number = 200
+  maxLength: number = 200,
 ): string {
   const plainText = stripMarkdown(markdown);
 
@@ -61,7 +61,7 @@ export function extractExcerpt(
     truncated.lastIndexOf("？"),
     truncated.lastIndexOf(". "),
     truncated.lastIndexOf(", "),
-    truncated.lastIndexOf(" ")
+    truncated.lastIndexOf(" "),
   );
 
   if (lastPunctuation > maxLength * 0.6) {

@@ -1,6 +1,6 @@
 import satori from "satori";
 // import { html } from "satori-html";
-import { SITE } from "@/config";
+import { SITE } from "../../config";
 import loadGoogleFonts from "../loadGoogleFont";
 
 // const markup = html`<div
@@ -93,7 +93,7 @@ import loadGoogleFonts from "../loadGoogleFont";
 //       </div>
 //     </div>`;
 
-export default async post => {
+export default async (post) => {
   return satori(
     {
       type: "div",
@@ -222,8 +222,8 @@ export default async post => {
       height: 630,
       embedFont: true,
       fonts: await loadGoogleFonts(
-        post.data.title + post.data.author + SITE.title + "by"
+        post.data.title + post.data.author + SITE.title + "by",
       ),
-    }
+    },
   );
 };

@@ -10,8 +10,7 @@ tags:
   - Grasscutter
   - 私服
   - 游戏
-description:
-  Grasscutter 是一款非官方的某动漫游戏私服服务端软件的重新实现，支持本地和云端部署。本文档包含了草剪刀的下载链接、功能介绍、快速设置指南、构建方法以及常见问题排查等内容。
+description: Grasscutter 是一款非官方的某动漫游戏私服服务端软件的重新实现，支持本地和云端部署。本文档包含了草剪刀的下载链接、功能介绍、快速设置指南、构建方法以及常见问题排查等内容。
 ---
 
 ## Releases
@@ -25,7 +24,7 @@ description:
 #### [3.0.0 基于 1.3.1-dev-08fdcf6e 的 Grasscutter （服务端加客户端，需要打补丁）](https://cloud.wangyan.life/OneDrive/%E9%A1%B9%E7%9B%AE/Data/Grasscutter/3.0.0/3.0.0%20-%201.3.1-dev-08fdcf6e.zip)
 
 > 注：打补丁方式为：将 `...\Grasscutter\launcher` 文件夹下的 `global-metadata.dat` 文件复制至 `...\Genshin Impact\Genshin Impact Game\YuanShen_Data\Managed\Metadata` 文件夹下，替换原文件，注意备份原文件。
-> 
+>
 > `1.3.1-dev-08fdcf6e` 包已知 bug：仅旅行者能获得怪物掉落经验；
 
 #### [3.0.0 基于 1.3.1-dev-08f36195 的 Grasscutter （服务端加客户端，打补丁同上，解决了已知bug）](https://cloud.wangyan.life/OneDrive/%E9%A1%B9%E7%9B%AE/Data/Grasscutter/3.0.0/3.0.0%20-%201.3.1-dev-08f36195.zip)
@@ -66,14 +65,14 @@ description:
 
 ### 当前功能
 
-* **登录**
-* **战斗**
-* **好友**
-* **传送**
-* **祈愿**
-* **从控制台生成魔物**
-* **多人游戏 *部分* 可用**
-* **物品（获得物品/角色、升级角色/武器等）**
+- **登录**
+- **战斗**
+- **好友**
+- **传送**
+- **祈愿**
+- **从控制台生成魔物**
+- **多人游戏 _部分_ 可用**
+- **物品（获得物品/角色、升级角色/武器等）**
 
 ---
 
@@ -83,10 +82,10 @@ description:
 
 #### 环境需求
 
-* **[Java SE - 17](https://www.oracle.com/java/technologies/downloads/#java17)**
+- **[Java SE - 17](https://www.oracle.com/java/technologies/downloads/#java17)**
   > 注：如果仅运行服务端，只下载 jre 即可
-* **[MongoDB](https://www.mongodb.com/try/download/community)（推荐 4.0+）**
-* **代理程序：[mitmproxy](https://mitmproxy.org) (仅需 mitmdump，推荐使用)，[Fiddler Classic](https://telerik-fiddler.s3.amazonaws.com/fiddler/FiddlerSetup.exe) 等**
+- **[MongoDB](https://www.mongodb.com/try/download/community)（推荐 4.0+）**
+- **代理程序：[mitmproxy](https://mitmproxy.org) (仅需 mitmdump，推荐使用)，[Fiddler Classic](https://telerik-fiddler.s3.amazonaws.com/fiddler/FiddlerSetup.exe) 等**
 
 #### 服务端运行
 
@@ -94,12 +93,12 @@ description:
 
 **⒈获取 `grasscutter.jar`**
 
-> * **从  [Releases](https://github.com/Grasscutters/Grasscutter/releases/latest) 下载**
-> * **[自行编译](https://github.com/Grasscutters/Grasscutter/blob/development/README_zh-CN.md#%E6%9E%84%E5%BB%BA)**
+> - **从 [Releases](https://github.com/Grasscutters/Grasscutter/releases/latest) 下载**
+> - **[自行编译](https://github.com/Grasscutters/Grasscutter/blob/development/README_zh-CN.md#%E6%9E%84%E5%BB%BA)**
 
-**⒉在 JAR 文件根目录中创建 `resources` 文件夹并复制 `BinOutput` 和 `ExcelBinOutput`*（查看  [Wiki](https://github.com/Grasscutters/Grasscutter/wiki)  了解更多）***
+**⒉在 JAR 文件根目录中创建 `resources` 文件夹并复制 `BinOutput` 和 `ExcelBinOutput`_（查看 [Wiki](https://github.com/Grasscutters/Grasscutter/wiki) 了解更多）_**
 
-**⒊确认 MongoDB 服务运行正常后，使用命令行  `java -jar grasscutter.jar`  运行 Grasscutter**
+**⒊确认 MongoDB 服务运行正常后，使用命令行 `java -jar grasscutter.jar` 运行 Grasscutter**
 
 #### 客户端连接
 
@@ -107,7 +106,7 @@ description:
 
 **⒉重定向流量（选择其中一种方法）**
 
-* **mitmdump: `mitmdump -s proxy.py -k` 信任 CA 证书：**
+- **mitmdump: `mitmdump -s proxy.py -k` 信任 CA 证书：**
 
 > 注意：`mitmproxy` 的 CA 证书通常存放在 `%USERPROFILE%\ .mitmproxy`，或者从 `http://mitm.it` 下载证书
 
@@ -115,9 +114,9 @@ description:
 
 `certutil -addstore root %USERPROFILE%\.mitmproxy\mitmproxy-ca-cert.cer`
 
-* **Fiddler Classic**
+- **Fiddler Classic**
   运行 Fiddler Classic，在设置中开启 `解密 https 通信` 并将端口设为除 `8888` 以外的任意端口 (工具 -> 选项 -> 连接) 并加载 [此脚本](https://github.lunatic.moe/fiddlerscript)
-* **[Hosts 文件](https://github.com/Grasscutters/Grasscutter/wiki/Running#traffic-route-map)**
+- **[Hosts 文件](https://github.com/Grasscutters/Grasscutter/wiki/Running#traffic-route-map)**
 
 **⒊设置代理为 `127.0.0.1:8080` 或你设置的端口**
 

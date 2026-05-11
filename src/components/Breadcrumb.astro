@@ -2,7 +2,7 @@
 // Remove trailing slashes and normalize
 const currentUrlPath = Astro.url.pathname.replace(/\/+$/, "");
 
-import LOCALE from "@/i18n";
+import LOCALE from "../i18n";
 
 // split into path segments
 const segments = currentUrlPath.split("/").slice(1).filter(Boolean);

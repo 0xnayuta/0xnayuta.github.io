@@ -7,8 +7,7 @@ featured: false
 draft: true
 tags:
   - XXXXXX
-description:
-  XXXXXXX
+description: XXXXXXX
 ---
 
 XXXXXXXXX

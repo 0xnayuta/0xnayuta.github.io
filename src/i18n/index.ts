@@ -1,4 +1,4 @@
-import { SITE } from "@/config";
+import { SITE } from "../config";
 
 // Minimal i18n dictionary structure. Add more locales as needed.
 const locales: Record<

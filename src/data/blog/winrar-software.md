@@ -8,8 +8,7 @@ draft: false
 tags:
   - 软件推荐
   - WinRAR
-description:
-  WinRAR 是一款功能强大的压缩包管理器，它是档案工具 RAR 在 Windows 环境下的图形界面。该软件可用于备份数据，缩减电子邮件附件的大小，解压缩从 Internet 上下载的 RAR、ZIP 及其它类型文件，并且可以新建 RAR 及 ZIP 格式等的压缩类文件。
+description: WinRAR 是一款功能强大的压缩包管理器，它是档案工具 RAR 在 Windows 环境下的图形界面。该软件可用于备份数据，缩减电子邮件附件的大小，解压缩从 Internet 上下载的 RAR、ZIP 及其它类型文件，并且可以新建 RAR 及 ZIP 格式等的压缩类文件。
 ---
 
 ## [⒈软件介绍](https://www.win-rar.com/products-winrar.html?&L=0)

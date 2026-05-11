@@ -1,11 +1,11 @@
 ---
 import "@pagefind/default-ui/css/ui.css";
-import Main from "@/layouts/Main.astro";
-import Layout from "@/layouts/Layout.astro";
-import Header from "@/components/Header.astro";
-import Footer from "@/components/Footer.astro";
-import { SITE } from "@/config";
-import LOCALE from "@/i18n";
+import Main from "../layouts/Main.astro";
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../config";
+import LOCALE from "../i18n";
 
 const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
 ---

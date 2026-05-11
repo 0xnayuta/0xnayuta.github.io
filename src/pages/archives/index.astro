@@ -1,13 +1,13 @@
 ---
 import { getCollection } from "astro:content";
-import Main from "@/layouts/Main.astro";
-import Layout from "@/layouts/Layout.astro";
-import Header from "@/components/Header.astro";
-import Footer from "@/components/Footer.astro";
-import Card from "@/components/Card.astro";
-import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
-import { SITE } from "@/config";
-import LOCALE from "@/i18n";
+import Main from "../../layouts/Main.astro";
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import Card from "../../components/Card.astro";
+import getPostsByGroupCondition from "../../utils/getPostsByGroupCondition";
+import { SITE } from "../../config";
+import LOCALE from "../../i18n";
 
 // Redirect to 404 page if `showArchives` config is false
 if (!SITE.showArchives) {

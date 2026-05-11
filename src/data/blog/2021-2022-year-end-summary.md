@@ -7,8 +7,7 @@ featured: false
 draft: false
 tags:
   - 年度总结
-description:
-  过去一年的总结。
+description: 过去一年的总结。
 ---
 
 在过去的一年里，我改变了许多，无论是在个人思想上、学习上还是工作和生活中。

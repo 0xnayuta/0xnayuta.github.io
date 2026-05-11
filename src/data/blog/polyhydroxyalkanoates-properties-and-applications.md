@@ -8,8 +8,7 @@ draft: false
 tags:
   - PHA
   - 生物材料
-description:
-  本文介绍了聚羟基脂肪酸酯（PHA）的特性、产业化生产和应用的热点领域，并综述了 PHA 合成的研究进展。
+description: 本文介绍了聚羟基脂肪酸酯（PHA）的特性、产业化生产和应用的热点领域，并综述了 PHA 合成的研究进展。
 ---
 
 **摘要：聚羟基脂肪酸酯（Polyhydroxyalkanoates，PHA）是一种在微生物体内合成的天然高分子生物材料，在碳源过量、氮磷等其他营养物质不足的情况下可以作为微生物碳源和能源的储备物质。PHA 具有良好的生物相容性、生物可降解性和热加工性能等特性，是传统石化塑料的最佳替代品。随着 PHA 产业化的发展，四代商业化生产的 PHA 产品（PHB、PHBV、PHBHHx 和 P3HB4HB）已被应用于医药、工业、农业及化工等领域，成为生物材料领域最活跃的研究热点之一。然而，发酵底物和灭菌成本过高、生产效率和产品性能较低的问题尚未得到有效解决，很难保持对石油基塑料更大的竞争力，因此探索一种低成本合成 PHA 的方法尤为重要。本文介绍了 PHA 的特性和产业化生产和应用的热点领域，综述了 PHA 合成的研究进展。**
@@ -17,7 +16,7 @@ description:
 **关键词：聚羟基脂肪酸酯 PHA 合成 生物发酵 催化聚合 基因工程**
 
 > **Abstract: Polyhydroxyalkanoates (PHA) are natural polymeric biomaterials synthesized in microorganisms, which can be used as a reserve of carbon and energy for microorganisms in the case of excess carbon and deficiency of other nutrients such as nitrogen and phosphorus. PHA is the best alternative to traditional petrochemicals. With the development of PHA industrialization, four generations of commercially produced PHA products (PHB, PHBV, PHBHHx and P3HB4HB) have been applied in pharmaceutical, industrial, agricultural and chemical fields, becoming one of the most active research hotspots in the field of biomaterials. However, the problems of high fermentation substrate and sterilization costs, low production efficiency and product performance have not been effectively solved, making it difficult to maintain greater competitiveness against petroleum-based plastics, so it is particularly important to explore a low-cost method for synthesizing PHAs. This paper introduces the properties of PHA and hot areas of industrial production and application, and reviews the research progress of PHA synthesis.**
-> 
+>
 > **Key words: Polyhydroxyalkanoates, PHA synthesis, Biofermentation, Catalytic Polymerization, Genetic engineering**
 
 ---

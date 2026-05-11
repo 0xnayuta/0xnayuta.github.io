@@ -8,8 +8,7 @@ draft: false
 tags:
   - 软件推荐
   - Office Tool Plus
-description:
-  Office Tool Plus 是一个强大且实用的 Office 部署工具。它基于 Office 部署工具和 OSPP 制作，可以方便地部署、激活和管理 Office。支持 Microsoft 365、Office 2016、2019、2021 以及 Visio 和 Project 等产品。
+description: Office Tool Plus 是一个强大且实用的 Office 部署工具。它基于 Office 部署工具和 OSPP 制作，可以方便地部署、激活和管理 Office。支持 Microsoft 365、Office 2016、2019、2021 以及 Visio 和 Project 等产品。
 ---
 
 ## ⒈官方网站
@@ -30,10 +29,10 @@ Office Tool Plus 基于 Office 部署工具(opens new window)和 OSPP(opens new 
 
 **支持下列产品：**
 
-* **Microsoft 365**
-* **Office 2016, 2019, 2021**
-* **Visio 2016, 2019, 2021 & Online Plan 2**
-* **Project 2016, 2019, 2021 & Online Desktop Client**
+- **Microsoft 365**
+- **Office 2016, 2019, 2021**
+- **Visio 2016, 2019, 2021 & Online Plan 2**
+- **Project 2016, 2019, 2021 & Online Desktop Client**
 
 > **无论你是个体还是团队，Office Tool Plus 都是你的得力小助手。**
 
@@ -46,7 +45,7 @@ Office Tool Plus 基于 Office 部署工具(opens new window)和 OSPP(opens new 
 #### [Office Tool Plus v10.4.2.4 x64（不包含框架）](https://cloud.wangyan.life/OneDrive/%E8%BD%AF%E4%BB%B6/Office%20Tool%20Plus/Office_Tool_v10.4.2.4_x64.zip)
 
 > 注：下载完成后，请将 Office Tool Plus 解压到一个合适的位置，例如桌面。请勿在压缩包内直接双击运行 Office Tool Plus. 推荐下载包含框架的版本，可以直接运行 Office Tool Plus.
-> 
+>
 > 不提供历史版本下载。
 
 ---
@@ -75,8 +74,8 @@ Office Tool Plus 基于 Office 部署工具(opens new window)和 OSPP(opens new 
 
 ### ⑴操作系统
 
-* **Windows 7 SP1 或者更高，建议使用 Windows 10.**
-* **Windows Server 2008 R2 SP1 或者更高。**
+- **Windows 7 SP1 或者更高，建议使用 Windows 10.**
+- **Windows Server 2008 R2 SP1 或者更高。**
 
 > 注：Office Tool Plus 不支持 macOS 或者 Linux 等操作系统。
 
@@ -84,7 +83,7 @@ Office Tool Plus 基于 Office 部署工具(opens new window)和 OSPP(opens new 
 
 ### ⑵硬件要求
 
-* **屏幕分辨率: 1024 x 768 或者更高。**
+- **屏幕分辨率: 1024 x 768 或者更高。**
 
 ---
 
