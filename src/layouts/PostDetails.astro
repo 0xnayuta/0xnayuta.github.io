@@ -91,39 +91,35 @@ const nextPost =
   <main
     id="main-content"
     class:list={[
-      "mx-auto w-full max-w-6xl px-4 pb-12",
+      "mx-auto w-full max-w-app px-4 pb-12",
       { "mt-8": !SITE.showBackButton },
     ]}
     data-pagefind-body
   >
-    <!-- 使用 flex 布局：文章居中，目录在右侧 -->
-    <div class="flex justify-center gap-4 lg:gap-6">
-      <!-- 左侧占位（保持文章居中） -->
-      <div class="hidden lg:block w-56 xl:w-72 shrink-0"></div>
-      
-      <!-- 中间文章区域 -->
-      <div class="w-full max-w-app min-w-0">
-        <h1
-          transition:name={slugifyStr(title)}
-          class="inline-block text-2xl font-bold text-accent sm:text-3xl"
-        >
-          {title}
-        </h1>
-        <div class="my-2 flex items-center gap-2">
-          <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
-          <span aria-hidden="true" class="max-sm:hidden">|</span>
-          <EditPost {hideEditPost} {post} class="max-sm:hidden" />
-        </div>
-        <article
-          id="article"
-          class="app-prose mt-8 prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
-        >
-          <Content />
-        </article>
+    <div class="relative">
+      <h1
+        transition:name={slugifyStr(title)}
+        class="inline-block text-2xl font-bold text-accent sm:text-3xl"
+      >
+        {title}
+      </h1>
+      <div class="my-2 flex items-center gap-2">
+        <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
+        <span aria-hidden="true" class="max-sm:hidden">|</span>
+        <EditPost {hideEditPost} {post} class="max-sm:hidden" />
       </div>
+      <article
+        id="article"
+        class="app-prose mt-8 max-w-none prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      >
+        <Content />
+      </article>
 
-      <!-- 右侧目录 -->
-      <aside class="hidden lg:block w-56 xl:w-72 shrink-0">
+      <!-- 右侧目录：脱离正文布局流，只在宽屏显示，避免挤压正文宽度 -->
+      <aside
+        class="absolute inset-y-0 left-full ml-6 hidden w-52 xl:block 2xl:ml-8 2xl:w-56"
+        data-pagefind-ignore
+      >
         <div class="sticky top-24">
           <TableOfContents />
         </div>

@@ -20,7 +20,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 
   for (const { tag, tagName } of tags) {
     const tagPosts = getPostsByTag(posts, tag);
-    const pages = await paginate(getSortedPosts(tagPosts), {
+    const pages = paginate(getSortedPosts(tagPosts), {
       pageSize: SITE.postPerPage,
       params: { tag },
       // pass the original tagName (from getUniqueTags) so pages keep original casing
