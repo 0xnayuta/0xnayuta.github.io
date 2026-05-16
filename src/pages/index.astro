@@ -52,20 +52,15 @@ const homePath = getRelativeLocaleUrl(locale, "");
         <span class="sr-only">RSS Feed</span>
       </a>
 
-      <p>
-        AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro
-        blog theme. This theme follows best practices and provides accessibility
-        out of the box. Light and dark mode are supported by default. Moreover,
-        additional color schemes can also be configured.
-      </p>
-      <p class="mt-2">
-        Read the blog posts or check
-        <LinkButton
-          class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="https://github.com/satnaing/astro-paper#readme"
-        >
-          README
-        </LinkButton> for more info.
+      <p id="hitokoto" class="mt-4 w-full" role="status" aria-live="polite">
+        <span class="block w-full text-base">
+          <span class="text-2xl align-top">“</span>
+          <span class="hitokoto-inner">
+            世界上只有一种真正的英雄主义，那就是在认清生活的真相之后，依然热爱生活。
+          </span>
+          <span class="text-2xl align-top">”</span>
+        </span>
+        <span class="hitokoto-from mt-3 block w-full text-end">— 罗曼·罗兰</span>
       </p>
       {
         socials.length > 0 && (
@@ -127,11 +122,118 @@ const homePath = getRelativeLocaleUrl(locale, "");
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    const indexLayout = (document.querySelector("#main-content") as HTMLElement)
-      ?.dataset;
+    const indexLayout = (
+      document.querySelector("#main-content") as HTMLElement | null
+    )?.dataset;
     const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
     if (indexLayout?.layout) {
       sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
     }
   });
+
+  document.addEventListener("astro:page-load", async () => {
+    const container = document.querySelector("#hitokoto");
+    if (!container) return;
+
+    const innerEl = container.querySelector(".hitokoto-inner") as
+      | HTMLElement
+      | null;
+    const fromEl = container.querySelector(".hitokoto-from") as
+      | HTMLElement
+      | null;
+
+    const CACHE_KEY = "hitokoto_cache";
+    const CACHE_TIME_KEY = "hitokoto_cache_time";
+    const CACHE_DURATION = 10 * 60 * 1000;
+
+    function animate(el: HTMLElement | null) {
+      if (!el) return;
+      el.classList.remove("fade-in");
+      void el.offsetHeight;
+      el.classList.add("fade-in");
+    }
+
+    function displayHitokoto(sentence: string, source: string) {
+      if (innerEl) {
+        innerEl.textContent = sentence;
+        animate(innerEl);
+      }
+      if (fromEl) {
+        fromEl.textContent = source ? `— ${source}` : "";
+        animate(fromEl);
+      }
+    }
+
+    function loadFromCache() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+        if (!cached || !cachedTime) return null;
+
+        const age = Date.now() - Number(cachedTime);
+        if (age >= CACHE_DURATION) return null;
+
+        return JSON.parse(cached);
+      } catch {
+        return null;
+      }
+    }
+
+    function saveToCache(sentence: string, source: string) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ sentence, source }));
+        localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+      } catch {
+        // ignore
+      }
+    }
+
+    const cached = loadFromCache();
+    if (cached?.sentence) {
+      displayHitokoto(cached.sentence, cached.source ?? "");
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch("https://v1.hitokoto.cn/?c=a&c=b&c=d&c=i&c=k", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error("Network response failed");
+      const data = await res.json();
+
+      const sentence = data.hitokoto || data.sentence || "";
+      const source = data.from || data.from_who || "";
+
+      if (sentence && (!cached || cached.sentence !== sentence)) {
+        displayHitokoto(sentence, source);
+      }
+
+      if (sentence) {
+        saveToCache(sentence, source);
+      }
+    } catch {
+      // keep current content (default or cached)
+    }
+  });
 </script>
+
+<style>
+  .fade-in {
+    animation: hitokoto-fade-in 0.45s ease;
+  }
+
+  @keyframes hitokoto-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
