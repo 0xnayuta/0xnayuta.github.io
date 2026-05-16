@@ -1,101 +1,115 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "../layouts/Layout.astro";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import Socials from "../components/Socials.astro";
-import LinkButton from "../components/LinkButton.astro";
-import Card from "../components/Card.astro";
-import Hr from "../components/Hr.astro";
-import getSortedPosts from "../utils/getSortedPosts";
-import IconRss from "../assets/icons/IconRss.svg";
-import IconArrowRight from "../assets/icons/IconArrowRight.svg";
-import { SITE } from "../config";
-import { SOCIALS } from "../constants";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import IconRss from "@/assets/icons/IconRss.svg";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Socials from "@/components/Socials.astro";
+import Card from "@/components/Card.astro";
+import LinkButton from "@/components/LinkButton.astro";
+import { getSortedPosts } from "@/utils/getSortedPosts";
+import { useTranslations } from "@/i18n";
+import config from "@/config";
 
-const posts = await getCollection("blog");
+const { socials, posts: postsConfig } = config;
 
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
+
+const posts = await getCollection("posts");
 const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const homePath = getRelativeLocaleUrl(locale, "");
 ---
 
 <Layout>
   <Header />
-  <main id="main-content" data-layout="index">
-    <section id="hero" class="pt-8 pb-6">
+  <main
+    id="main-content"
+    data-layout="index"
+    data-home-path={homePath}
+    class="app-layout"
+  >
+    <section id="hero" class="border-border border-b pt-8 pb-6">
       <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
         Ciallo~(∠・ω&lt; )⌒★
       </h1>
       <a
         target="_blank"
-        href="/rss.xml"
+        href={getRelativeLocaleUrl(locale, "rss.xml")}
         class="inline-block"
-        aria-label="rss feed"
+        aria-label="RSS Feed"
         title="RSS Feed"
       >
         <IconRss
           width={20}
           height={20}
-          class="scale-125 stroke-accent stroke-3 rtl:-rotate-90"
+          class="stroke-accent scale-125 stroke-3 rtl:-rotate-90"
         />
         <span class="sr-only">RSS Feed</span>
       </a>
 
-  <p id="hitokoto" class="hitokoto w-full" role="status" aria-live="polite">
-        <span class="hitokoto-text block w-full text-base">
-          <span class="hitokoto-quote text-2xl align-top mr-2">"</span>
-          <span class="hitokoto-inner">世界上只有一种真正的英雄主义,那就是在认清生活的真相之后,依然热爱生活。</span>
-          <span class="hitokoto-quote text-2xl align-top ml-2">"</span>
+      <p id="hitokoto" class="hitokoto w-full" role="status" aria-live="polite">
+        <span class="hitokoto-text block w-full text-base font-semibold">
+          <span class="hitokoto-quote text-2xl align-top me-2">"</span>
+          <span class="hitokoto-inner">
+            世界上只有一种真正的英雄主义，那就是在认清生活的真相之后，依然热爱生活。
+          </span>
+          <span class="hitokoto-quote text-2xl align-top ms-2">"</span>
         </span>
-        <span class="hitokoto-from block w-full text-end mt-3"> -- 罗曼·罗兰</span>
+        <span class="hitokoto-from mt-3 block w-full text-end text-sm"> —— 罗曼·罗兰</span>
       </p>
-
       {
-        // only display if at least one social link is enabled
-        SOCIALS.length > 0 && (
-          <div class="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-end">
+        socials.length > 0 && (
+          <div class="mt-8 flex max-sm:flex-col sm:items-center">
             <Socials />
           </div>
         )
       }
     </section>
 
-    <Hr />
-
     {
       featuredPosts.length > 0 && (
-        <>
-          <section id="featured" class="pt-12 pb-6">
-            <h2 class="text-2xl font-semibold tracking-wide">置顶文章</h2>
-            <ul>
-              {featuredPosts.map(data => (
-                <Card variant="h3" {...data} />
-              ))}
-            </ul>
-          </section>
-          {recentPosts.length > 0 && <Hr />}
-        </>
+        <section
+          id="featured"
+          class:list={[
+            "pt-12 pb-6",
+            { "border-border border-b": recentPosts.length > 0 },
+          ]}
+        >
+          <h2 class="text-2xl font-semibold tracking-wide">
+            {t.home.featured}
+          </h2>
+          <ul>
+            {featuredPosts.map(data => (
+              <Card variant="h3" {...data} />
+            ))}
+          </ul>
+        </section>
       )
     }
 
     {
       recentPosts.length > 0 && (
         <section id="recent-posts" class="pt-12 pb-6">
-          <h2 class="text-2xl font-semibold tracking-wide">最新文章</h2>
+          <h2 class="text-2xl font-semibold tracking-wide">
+            {t.home.recentPosts}
+          </h2>
           <ul>
-            {recentPosts.map(
-              (data, index) =>
-                index < SITE.postPerIndex && <Card variant="h3" {...data} />
-            )}
+            {recentPosts.slice(0, postsConfig.perIndex).map(data => (
+              <Card variant="h3" {...data} />
+            ))}
           </ul>
         </section>
       )
     }
 
     <div class="my-8 text-center">
-      <LinkButton href="/posts/page/2/">
-        全部文章
+      <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
+        {t.home.allPosts}
         <IconArrowRight class="inline-block rtl:-rotate-180" />
       </LinkButton>
     </div>
@@ -105,98 +119,140 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    const indexEl = document.querySelector("#main-content");
-    if (indexEl instanceof HTMLElement) {
-      const indexLayout = indexEl.dataset?.layout;
-      if (indexLayout) {
-        sessionStorage.setItem("backUrl", "/");
-      }
+    const indexLayout = (
+      document.querySelector("#main-content") as HTMLElement | null
+    )?.dataset;
+    const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+    if (indexLayout?.layout) {
+      sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
     }
   });
-</script>
 
-<script>
-  // Fetch a single sentence (一言) from hitokoto with localStorage cache
   document.addEventListener("astro:page-load", async () => {
-    const container = document.querySelector('#hitokoto');
+    const container = document.querySelector("#hitokoto");
     if (!container) return;
 
-    const textWrapper = container.querySelector('.hitokoto-text');
-    const innerEl = container.querySelector('.hitokoto-inner');
-    const fromEl = container.querySelector('.hitokoto-from');
+    const textWrapper = container.querySelector(".hitokoto-text") as
+      | HTMLElement
+      | null;
+    const innerEl = container.querySelector(".hitokoto-inner") as
+      | HTMLElement
+      | null;
+    const fromEl = container.querySelector(".hitokoto-from") as
+      | HTMLElement
+      | null;
 
-    const CACHE_KEY = 'hitokoto_cache';
-    const CACHE_TIME_KEY = 'hitokoto_cache_time';
-    const CACHE_DURATION = 10 * 60 * 1000; // 10 分钟缓存
+    const CACHE_KEY = "hitokoto_cache";
+    const CACHE_TIME_KEY = "hitokoto_cache_time";
+    const CACHE_DURATION = 10 * 60 * 1000;
 
-    // 显示一言内容
+    function animate(el: HTMLElement | null) {
+      if (!el) return;
+      el.classList.remove("fade-in");
+      void el.offsetHeight;
+      el.classList.add("fade-in");
+    }
+
     function displayHitokoto(sentence: string, source: string) {
-      if (innerEl && innerEl instanceof HTMLElement) {
+      if (innerEl) {
         innerEl.textContent = sentence;
       }
-      if (textWrapper && textWrapper instanceof HTMLElement) {
-        textWrapper.classList.remove('fade-in');
-        void textWrapper.offsetHeight; // trigger reflow
-        textWrapper.classList.add('fade-in');
+      if (textWrapper) {
+        animate(textWrapper);
       }
-      if (fromEl && fromEl instanceof HTMLElement) {
-        fromEl.textContent = source ? ` —— ${source}` : '';
-        fromEl.classList.remove('fade-in');
-        void fromEl.offsetHeight;
-        fromEl.classList.add('fade-in');
+      if (fromEl) {
+        fromEl.textContent = source ? ` —— ${source}` : "";
+        animate(fromEl);
       }
     }
 
-    // 尝试从缓存加载
-    function loadFromCache(): { sentence: string; source: string } | null {
+    function loadFromCache() {
       try {
         const cached = localStorage.getItem(CACHE_KEY);
         const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-        if (cached && cachedTime) {
-          const age = Date.now() - parseInt(cachedTime, 10);
-          if (age < CACHE_DURATION) {
-            return JSON.parse(cached);
-          }
-        }
-      } catch { /* ignore */ }
-      return null;
+        if (!cached || !cachedTime) return null;
+
+        const age = Date.now() - Number(cachedTime);
+        if (age >= CACHE_DURATION) return null;
+
+        return JSON.parse(cached);
+      } catch {
+        return null;
+      }
     }
 
-    // 保存到缓存
     function saveToCache(sentence: string, source: string) {
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ sentence, source }));
-        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-      } catch { /* ignore */ }
+        localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+      } catch {
+        // ignore
+      }
     }
 
-    // 先显示缓存内容（如果有）
     const cached = loadFromCache();
-    if (cached) {
-      displayHitokoto(cached.sentence, cached.source);
+    if (cached?.sentence) {
+      displayHitokoto(cached.sentence, cached.source ?? "");
     }
 
-    // 后台请求新内容
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      const res = await fetch('https://v1.hitokoto.cn/?c=a&c=b&c=d&c=i&c=k', { signal: controller.signal });
+      const res = await fetch("https://v1.hitokoto.cn/?c=a&c=b&c=d&c=i&c=k", {
+        signal: controller.signal,
+      });
       clearTimeout(timeout);
 
-      if (!res.ok) throw new Error('Network response failed.');
+      if (!res.ok) throw new Error("Network response failed");
       const data = await res.json();
 
-      const sentence = data.hitokoto || data.sentence || '';
-      const source = data.from || data.from_who || '';
+      const sentence = data.hitokoto || data.sentence || "";
+      const source = data.from || data.from_who || "";
 
-      // 只有内容不同时才更新显示
-      if (!cached || cached.sentence !== sentence) {
+      if (sentence && (!cached || cached.sentence !== sentence)) {
         displayHitokoto(sentence, source);
       }
-      saveToCache(sentence, source);
+
+      if (sentence) {
+        saveToCache(sentence, source);
+      }
     } catch {
-      // API 失败时保持当前内容（默认或缓存）
+      // keep current content (default or cached)
     }
   });
 </script>
+
+<style>
+  .hitokoto {
+    margin-top: 0.75rem;
+    line-height: 1.8;
+  }
+
+  .hitokoto .hitokoto-text {
+    font-style: italic;
+    font-weight: 600;
+    opacity: 0;
+  }
+
+  .hitokoto .hitokoto-from {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+  }
+
+  .fade-in {
+    animation: hitokoto-fade-in 0.45s ease forwards;
+  }
+
+  @keyframes hitokoto-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

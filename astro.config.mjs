@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
+import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import remarkToc from "remark-toc";
@@ -14,7 +15,11 @@ import { SITE } from "./src/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://www.wangyan.life",
+  site: SITE.website,
+  i18n: {
+    defaultLocale: SITE.lang,
+    locales: [SITE.lang],
+  },
   integrations: [
     sitemap({
       filter: (page) => SITE.showArchives || !page.endsWith("/archives"),
@@ -36,6 +41,11 @@ export default defineConfig({
     },
   },
   vite: {
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
     // eslint-disable-next-line
     // @ts-ignore
     // This will be fixed in Astro 6 with Vite 7 support
