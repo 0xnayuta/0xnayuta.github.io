@@ -8,30 +8,30 @@
 
 ## P1 对照表(最终状态)
 
-| #   | 旧文件(升级前)                         | 新版落点(v6)                                                                             | 恢复状态    | 恢复说明                                                     |
-| --- | ---------------------------------------- | ------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------ |
-| 1   | `src/config.ts`                          | `astro-paper.config.ts`(主配置) + `src/config.ts`(resolved 层)                         | ✅ 已恢复   | 站点 url 改为 `https://www.wangyan.life`;其余已收敛         |
-| 2   | `src/i18n/index.ts`                      | `src/i18n/index.ts` + `src/i18n/lang/zh.ts`                                                | ✅ 已恢复   | 新增 `zh.ts`,补全中文翻译(nav/pagination/pages/post/a11y) |
-| 3   | `src/components/Breadcrumb.astro`        | `src/components/Breadcrumb.astro`                                                          | ✅ 已恢复   | 已回退分隔符为旧版 `&gt;`（`>`）                             |
-| 4   | `src/components/Footer.astro`            | `src/components/Footer.astro`                                                              | ✅ 已恢复   | 恢复站点标题链接 + 备案号外链                                |
-| 5   | `src/components/Pagination.astro`        | `src/components/Pagination.astro`                                                          | ⏭ 跳过     | v6 版本已满足,保持新架构                                    |
-| 6   | `src/components/Card.astro`              | `src/components/Card.astro` + `src/utils/extractExcerpt.ts`                                | ✅ 已恢复   | 恢复摘要兜底逻辑 + TruncateText 截断                         |
+| #   | 旧文件(升级前)                           | 新版落点(v6)                                                                               | 恢复状态    | 恢复说明                                                            |
+| --- | ---------------------------------------- | ------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------------- |
+| 1   | `src/config.ts`                          | `astro-paper.config.ts`(主配置) + `src/config.ts`(resolved 层)                             | ✅ 已恢复   | 站点 url 改为 `https://www.wangyan.life`;其余已收敛                 |
+| 2   | `src/i18n/index.ts`                      | `src/i18n/index.ts` + `src/i18n/lang/zh.ts`                                                | ✅ 已恢复   | 新增 `zh.ts`,补全中文翻译(nav/pagination/pages/post/a11y)           |
+| 3   | `src/components/Breadcrumb.astro`        | `src/components/Breadcrumb.astro`                                                          | ✅ 已恢复   | 已回退分隔符为旧版 `&gt;`（`>`）                                    |
+| 4   | `src/components/Footer.astro`            | `src/components/Footer.astro`                                                              | ✅ 已恢复   | 恢复站点标题链接 + 备案号外链                                       |
+| 5   | `src/components/Pagination.astro`        | `src/components/Pagination.astro`                                                          | ⏭ 跳过     | v6 版本已满足,保持新架构                                            |
+| 6   | `src/components/Card.astro`              | `src/components/Card.astro` + `src/utils/extractExcerpt.ts`                                | ✅ 已恢复   | 恢复摘要兜底逻辑 + TruncateText 截断                                |
 | 7   | `src/pages/index.astro`                  | `src/pages/index.astro`                                                                    | ✅ 已恢复   | 恢复一言模块与旧站样式（粗体引言、小号出处、`——` 前缀、图标社交区） |
-| 8   | `src/pages/search.astro`                 | `src/pages/search.astro`                                                                   | ⏭ 跳过     | v6 版本已满足,保持新架构                                    |
-| 9   | `src/pages/archives/index.astro`         | `src/pages/archives/index.astro` + `src/pages/archives/_utils/getPostsByGroupCondition.ts` | ⏭ 跳过     | v6 版本已优于旧版,无需改动                                  |
-| 10  | `src/layouts/Layout.astro`               | `src/layouts/Layout.astro`                                                                 | ✅ 已恢复   | 迁移前已移除 Font 与 `PUBLIC_GOOGLE_SITE_VERIFICATION`       |
-| 11  | `src/pages/og.png.ts`                    | 已移除                                                                                     | ⛔ 明确放弃 | 关闭 dynamic OG,稳定性优先                                  |
-| 12  | `src/pages/posts/[...slug]/index.png.ts` | 已移除                                                                                     | ⛔ 明确放弃 | 同上                                                         |
+| 8   | `src/pages/search.astro`                 | `src/pages/search.astro`                                                                   | ⏭ 跳过     | v6 版本已满足,保持新架构                                            |
+| 9   | `src/pages/archives/index.astro`         | `src/pages/archives/index.astro` + `src/pages/archives/_utils/getPostsByGroupCondition.ts` | ⏭ 跳过     | v6 版本已优于旧版,无需改动                                          |
+| 10  | `src/layouts/Layout.astro`               | `src/layouts/Layout.astro`                                                                 | ✅ 已恢复   | 迁移前已移除 Font 与 `PUBLIC_GOOGLE_SITE_VERIFICATION`              |
+| 11  | `src/pages/og.png.ts`                    | 已移除                                                                                     | ⛔ 明确放弃 | 关闭 dynamic OG,稳定性优先                                          |
+| 12  | `src/pages/posts/[...slug]/index.png.ts` | 已移除                                                                                     | ⛔ 明确放弃 | 同上                                                                |
 
 ---
 
 ## 恢复统计
 
-| 状态               | 数量 |
-| ------------------ | ---- |
-| ✅ 已恢复          | 7    |
+| 状态             | 数量 |
+| ---------------- | ---- |
+| ✅ 已恢复        | 7    |
 | ⏭ 跳过(v6 满足) | 3    |
-| ⛔ 明确放弃        | 2    |
+| ⛔ 明确放弃      | 2    |
 
 ---
 
