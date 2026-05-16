@@ -1,47 +1,31 @@
 ---
-import { slugifyStr } from "../utils/slugify";
 import type { CollectionEntry } from "astro:content";
-import { getPath } from "../utils/getPath";
+import { getPostUrl } from "@/utils/getPostPaths";
+import { slugifyStr } from "@/utils/slugify";
 import Datetime from "./Datetime.astro";
-import TruncateText from "./TruncateText.astro";
-import { extractExcerpt } from "../utils/extractExcerpt";
 
-export interface Props extends CollectionEntry<"blog"> {
+type Props = {
   variant?: "h2" | "h3";
-  /** 可选：最大摘要行数 */
-  maxLines?: number;
-}
+} & CollectionEntry<"posts">;
 
-const { variant = "h2", data, id, filePath, body, maxLines = 2 } = Astro.props;
+const { variant: Heading = "h2", id, data, filePath } = Astro.props;
 
-const { title, description, pubDatetime, modDatetime, timezone } = data;
-
-// 优先使用 description，否则从正文提取
-const excerpt = description || extractExcerpt(body || "", 200);
-
-const headerProps = {
-  style: { viewTransitionName: slugifyStr(title) },
-  class: "text-lg font-medium decoration-dashed hover:underline",
-};
+const { title, description, ...props } = data;
 ---
 
 <li class="my-6">
   <a
-    href={getPath(id, filePath)}
-    class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
+    href={getPostUrl(id, filePath, Astro.currentLocale)}
+    class:list={[
+      "text-accent inline-block text-lg font-medium",
+      "decoration-dashed underline-offset-4 hover:underline",
+      "focus-visible:no-underline focus-visible:underline-offset-0",
+    ]}
   >
-    {
-      variant === "h2" ? (
-        <h2 {...headerProps}>{title}</h2>
-      ) : (
-        <h3 {...headerProps}>{title}</h3>
-      )
-    }
+    <Heading transition:name={slugifyStr(title.replaceAll(".", "-"))}>
+      {title}
+    </Heading>
   </a>
-  <Datetime class="mt-2" {pubDatetime} {modDatetime} {timezone} />
-  <TruncateText
-    text={excerpt}
-    maxLines={maxLines}
-    class="mt-3 text-foreground/80"
-  />
+  <Datetime {...props} />
+  <p>{description}</p>
 </li>

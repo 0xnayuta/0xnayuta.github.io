@@ -1,140 +1,95 @@
 ---
-// Remove trailing slashes and normalize
-const currentUrlPath = Astro.url.pathname.replace(/\/+$/, "");
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { stripBase, stripLocale } from "@/utils/withBase";
+import { useTranslations } from "@/i18n";
+import config from "@/config";
 
-import LOCALE from "../i18n";
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
 
-// split into path segments
-const segments = currentUrlPath.split("/").slice(1).filter(Boolean);
+// Strip base prefix and trailing slash, then locale prefix so segments
+// reflect the logical page path only.
+const pathWithoutBase = stripBase(Astro.url.pathname).replace(/\/+$/, "");
+const currentUrlPath = stripLocale(pathWithoutBase, locale);
 
-const isNumeric = (s: string) => !isNaN(Number(s));
+// Get url array from path
+// eg: /tags/tailwindcss => ['tags', 'tailwindcss']
+const breadcrumbList = currentUrlPath.split("/").slice(1).filter(Boolean);
 
-/**
- * Build a robust breadcrumbs array where each item is { text, href }
- * This makes it easier to control labels and urls for special routes (posts, tags)
- */
-const buildBreadcrumbs = (segments: string[]): Array<{ text: string; href: string }> => {
-  const items: Array<{ text: string; href: string }> = [];
-
-  // use breadcrumbNames from site config when available (fall back to these defaults)
-  const nameMap: Record<string, string> = LOCALE.breadcrumbNames;
-
-  if (segments.length === 0) return items; // root only: no extra crumbs
-
-  // posts related routes
-  if (segments[0] === "posts") {
-    // /posts -> [ {text: '文章', href: '/posts/'} ]
-    if (segments.length === 1) {
-      items.push({ text: LOCALE.breadcrumbNames.posts, href: "/posts/" });
-      return items;
-    }
-
-    // /posts/page/2 -> page listing (new pagination structure)
-    if (segments[1] === "page" && segments.length >= 3 && isNumeric(segments[2])) {
-      const page = segments[2];
-      items.push({ text: LOCALE.breadcrumbNames.posts, href: "/posts/" });
-      items.push({ text: LOCALE.pageLabel(Number(page)), href: `/posts/page/${page}/` });
-      return items;
-    }
-
-    // legacy: /posts/2 -> page listing
-    if (isNumeric(segments[1])) {
-      items.push({ text: LOCALE.breadcrumbNames.posts, href: "/posts/" });
-      items.push({ text: LOCALE.pageLabel(Number(segments[1])), href: `/posts/${segments[1]}/` });
-      return items;
-    }
-
-    // /posts/<slug>[/...]
-    items.push({ text: LOCALE.breadcrumbNames.posts, href: "/posts/" });
-    // append rest segments as hierarchical pages under /posts/
-    for (let i = 1; i < segments.length; i++) {
-      const seg = segments[i];
-      const href = `/posts/${segments.slice(1, i + 1).join("/")}/`;
-      items.push({ text: decodeURIComponent(seg), href });
-    }
-
-    return items;
+const decodeSegment = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
   }
-
-  // tags related routes
-  if (segments[0] === "tags") {
-    // /tags -> 标签
-    if (segments.length === 1) {
-      items.push({ text: LOCALE.breadcrumbNames.tags, href: "/tags/" });
-      return items;
-    }
-
-    // /tags/<page> when second segment is numeric -> 标签（第 N 页）
-    if (isNumeric(segments[1])) {
-      items.push({ text: `${LOCALE.breadcrumbNames.tags}（第 ${segments[1]} 页）`, href: `/tags/${segments[1]}/` });
-      return items;
-    }
-
-    // /tags/<tag> or /tags/<tag>/<page>
-    items.push({ text: LOCALE.breadcrumbNames.tags, href: "/tags/" });
-
-    const tag = decodeURIComponent(segments[1]);
-    if (segments.length === 2) {
-      items.push({ text: tag, href: `/tags/${segments[1]}/` });
-      return items;
-    }
-
-    // segments.length >= 3
-    if (isNumeric(segments[2])) {
-      const page = segments[2];
-      items.push({ text: page === "1" ? `${tag}` : `${tag} ${LOCALE.pageLabel(Number(page))}`, href: `/tags/${segments[1]}/${page}/` });
-      return items;
-    }
-
-    // deeper nested - fall back to hierarchical under tags
-    for (let i = 1; i < segments.length; i++) {
-      const seg = segments[i];
-      const href = `/tags/${segments.slice(1, i + 1).join("/")}/`;
-      items.push({ text: decodeURIComponent(seg), href });
-    }
-
-    return items;
-  }
-
-  // default: build hierarchical breadcrumbs for any other path
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i];
-    const href = `/${segments.slice(0, i + 1).join("/")}/`;
-    const text = nameMap[seg] ?? decodeURIComponent(seg);
-    items.push({ text, href });
-  }
-
-  return items;
 };
 
-// accept optional page title from layout/pages
-const { currentTitle }: { currentTitle?: string } = Astro.props ?? {};
+const navLabels: Record<string, string> = {
+  posts: t.nav.posts,
+  tags: t.nav.tags,
+  about: t.nav.about,
+  archives: t.nav.archives,
+  search: t.nav.search,
+};
 
-const breadcrumbs = buildBreadcrumbs(segments);
+// if breadcrumb is Home > Posts > [page] <etc>
+// replace Posts with localized "Posts (page number)"
+if (breadcrumbList[0] === "posts") {
+  breadcrumbList.splice(
+    0,
+    2,
+    `${t.nav.posts} (${t.pagination.page.toLowerCase()} ${breadcrumbList[1] || 1})`
+  );
+}
+
+// if breadcrumb is Home > Tags > [tag] > [page] <etc>
+// replace [tag] > [page] with localized [tag] (page number)
+if (breadcrumbList[0] === "tags" && !isNaN(Number(breadcrumbList[2]))) {
+  breadcrumbList.splice(
+    1,
+    3,
+    `${decodeSegment(breadcrumbList[1])} ${
+      Number(breadcrumbList[2]) === 1
+        ? ""
+        : `(${t.pagination.page.toLowerCase()} ${breadcrumbList[2]})`
+    }`
+  );
+}
 ---
 
-<nav class="mx-auto mt-8 mb-6 w-full max-w-app px-4" aria-label="breadcrumb">
+<nav class="app-layout mt-8 mb-1" aria-label="breadcrumb">
   <ul
     class="font-light [&>li]:inline [&>li:not(:last-child)>a]:hover:opacity-100"
   >
     <li>
-      <a href="/" class="opacity-80">主页</a>
-      <span aria-hidden="true" class="opacity-80">&gt;</span>
+      <a href={getRelativeLocaleUrl(locale, "")} class="opacity-80">
+        {t.nav.home}
+      </a>
+      <span aria-hidden="true" class="opacity-80">&raquo;</span>
     </li>
     {
-      breadcrumbs.map((item, index) =>
-        index + 1 === breadcrumbs.length ? (
+      breadcrumbList.map((breadcrumb, index) =>
+        index + 1 === breadcrumbList.length ? (
           <li>
-            <span class="opacity-75" aria-current="page">
-              {currentTitle && currentTitle.trim() !== "" ? currentTitle : item.text}
+            <span
+              class:list={["capitalize opacity-75", { lowercase: index > 0 }]}
+              aria-current="page"
+            >
+              {/* make the last part lowercase in Home > Tags > some-tag */}
+              {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
             </span>
           </li>
         ) : (
           <li>
-            <a href={item.href} class="opacity-80">
-              {item.text}
+            <a
+              href={getRelativeLocaleUrl(locale, breadcrumb)}
+              class="capitalize opacity-70"
+            >
+              {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
             </a>
-            <span aria-hidden="true" class="opacity-80">&gt;</span>
+            <span aria-hidden="true" class="opacity-70">
+              &raquo;
+            </span>
           </li>
         )
       )

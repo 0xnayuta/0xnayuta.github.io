@@ -29,6 +29,7 @@ export const transformerFileName = ({
 
     for (const item of raw) {
       const [key, value] = item.split("=");
+      if (!key || !value) continue;
       metaMap.set(key, value.replace(/["'`]/g, ""));
     }
 
@@ -39,7 +40,7 @@ export const transformerFileName = ({
     // Add additional margin to code block
     this.addClassToHast(
       node,
-      `mt-8 ${style === "v1" ? "rounded-tl-none" : ""}`,
+      `mt-8 ${style === "v1" ? "rounded-tl-none" : ""}`
     );
 
     // Add file name to code block
