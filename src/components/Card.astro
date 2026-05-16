@@ -31,7 +31,7 @@ const excerpt = description || extractExcerpt(body || "", 200);
       {title}
     </Heading>
   </a>
-  <Datetime {...props} />
+  <Datetime class="mt-2" {...props} />
   <TruncateText
     text={excerpt}
     maxLines={maxLines}

@@ -2,6 +2,11 @@
 import config from "@/config";
 import LinkButton from "./LinkButton.astro";
 
+type Props = {
+  centered?: boolean;
+};
+
+const { centered = false } = Astro.props;
 const { site, socials } = config;
 
 const icons = import.meta.glob<{
@@ -22,7 +27,7 @@ const items = await Promise.all(
 );
 ---
 
-<div class="flex flex-wrap items-center gap-1">
+<div class:list={["flex-wrap justify-center gap-1", { flex: centered }]}>
   {
     items.map(({ url, title, Icon }) =>
       Icon ? (
