@@ -13,7 +13,10 @@
       "fast-xml-parser@<5.7.0": ">=5.7.0",
       "smol-toml@<1.6.1": ">=1.6.1",
       "yaml@>=2.0.0 <2.8.3": ">=2.8.3"
-    }
+    },
+    "minimumReleaseAgeExclude": [
+      "@typescript-eslint/scope-manager"
+    ]
   },
   "scripts": {
     "dev": "astro dev",
@@ -32,7 +35,7 @@
     "@chenglou/pretext": "^0.0.7",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.3.1",
+    "astro": "^6.3.3",
     "dayjs": "^1.11.20",
     "lodash.kebabcase": "^4.1.1",
     "remark-collapse": "^0.1.2",
@@ -49,7 +52,7 @@
     "@shikijs/transformers": "^4.0.2",
     "@tailwindcss/typography": "^0.5.19",
     "@types/lodash.kebabcase": "^4.1.9",
-    "@typescript-eslint/parser": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^10.3.0",
     "eslint-plugin-astro": "^1.7.0",
     "globals": "^17.6.0",
@@ -59,6 +62,6 @@
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.2"
+    "typescript-eslint": "^8.59.3"
   }
 }
