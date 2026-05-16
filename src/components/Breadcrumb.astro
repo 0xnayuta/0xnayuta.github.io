@@ -65,7 +65,7 @@ if (breadcrumbList[0] === "tags" && !isNaN(Number(breadcrumbList[2]))) {
       <a href={getRelativeLocaleUrl(locale, "")} class="opacity-80">
         {t.nav.home}
       </a>
-      <span aria-hidden="true" class="opacity-80">&raquo;</span>
+      <span aria-hidden="true" class="opacity-80">&gt;</span>
     </li>
     {
       breadcrumbList.map((breadcrumb, index) =>
@@ -88,7 +88,7 @@ if (breadcrumbList[0] === "tags" && !isNaN(Number(breadcrumbList[2]))) {
               {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
             </a>
             <span aria-hidden="true" class="opacity-70">
-              &raquo;
+              &gt;
             </span>
           </li>
         )
