@@ -2,7 +2,6 @@
 title: 基因线路课程汇报
 author: Wang Yan
 pubDatetime: 2022-10-28T17:38:31Z
-slug: robust-multicellular-computing
 featured: false
 draft: false
 tags:

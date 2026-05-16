@@ -2,7 +2,6 @@
 title: HEU KMS Activator - Windows 和 Office 激活工具
 author: Wang Yan
 pubDatetime: 2022-09-22T17:06:31Z
-slug: heu-kms-activator
 featured: false
 draft: false
 tags:

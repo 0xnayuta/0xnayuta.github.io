@@ -2,7 +2,6 @@
 title: XnView MP - 功能强大的照片查看器和图像管理工具
 author: Wang Yan
 pubDatetime: 2022-10-30T11:06:31Z
-slug: xnview-mp
 featured: false
 draft: false
 tags:

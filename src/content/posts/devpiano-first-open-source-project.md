@@ -2,7 +2,6 @@
 title: 我做了自己的第一个开源项目：devpiano
 author: Wang Yan
 pubDatetime: 2025-05-06T00:00:00Z
-slug: devpiano-first-open-source-project
 featured: false
 draft: false
 tags:

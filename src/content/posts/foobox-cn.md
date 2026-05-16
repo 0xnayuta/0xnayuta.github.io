@@ -2,7 +2,6 @@
 title: foobox-cn - foobar2000 默认用户界面皮肤配置
 author: Wang Yan
 pubDatetime: 2023-03-02T13:06:31Z
-slug: foobox-cn
 featured: false
 draft: false
 tags:

@@ -2,7 +2,6 @@
 title: 01 基础知识 汇编语言入门教程
 author: Wang Yan
 pubDatetime: 2022-09-29T04:06:31Z
-slug: 01-basic-knowledge-assembly-language-introduction
 featured: false
 draft: false
 tags:

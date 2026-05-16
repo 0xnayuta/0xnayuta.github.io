@@ -2,7 +2,6 @@
 title: Typecho 博客框架部署教程
 author: Wang Yan
 pubDatetime: 2022-06-29T02:15:31Z
-slug: typecho-installation-guide
 featured: false
 draft: false
 tags:

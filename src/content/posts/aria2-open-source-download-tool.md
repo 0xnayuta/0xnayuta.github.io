@@ -2,7 +2,6 @@
 title: Aria2 - 开源下载工具 - 轻量级多协议命令行下载器
 author: Wang Yan
 pubDatetime: 2022-08-18T07:36:31Z
-slug: aria2-open-source-download-tool
 featured: false
 draft: false
 tags:

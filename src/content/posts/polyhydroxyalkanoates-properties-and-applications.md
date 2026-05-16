@@ -2,7 +2,6 @@
 title: 聚羟基脂肪酸酯（PHA）的特性与应用
 author: Wang Yan
 pubDatetime: 2023-05-07T13:36:31Z
-slug: polyhydroxyalkanoates-properties-and-applications
 featured: false
 draft: false
 tags:

@@ -2,7 +2,6 @@
 title: Everything - 基于名称快速定位文件和文件夹
 author: Wang Yan
 pubDatetime: 2022-10-15T19:06:31Z
-slug: everything
 featured: false
 draft: false
 tags:

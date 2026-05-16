@@ -2,7 +2,6 @@
 title: Office Tool Plus - Office 部署工具 - 强大实用的 Office 管理助手
 author: Wang Yan
 pubDatetime: 2022-09-07T09:06:31Z
-slug: office-tool-plus-office-deployment-tool
 featured: false
 draft: false
 tags:

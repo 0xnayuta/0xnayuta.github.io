@@ -2,7 +2,6 @@
 title: foobar2000 - 高度可定制的多功能音频播放器
 author: Wang Yan
 pubDatetime: 2023-02-28T14:06:31Z
-slug: foobar2000
 featured: false
 draft: false
 tags:

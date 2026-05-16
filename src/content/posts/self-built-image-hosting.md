@@ -2,7 +2,6 @@
 title: 自建图床的图片命名方案及管理方法
 author: Wang Yan
 pubDatetime: 2022-10-04T12:06:31Z
-slug: self-built-image-hosting
 featured: false
 draft: false
 tags:

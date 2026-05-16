@@ -2,7 +2,6 @@
 title: Grasscutter 私服搭建指南
 author: Wang Yan
 pubDatetime: 2022-06-29T16:52:31Z
-slug: grasscutter-private-server
 featured: false
 draft: false
 tags:

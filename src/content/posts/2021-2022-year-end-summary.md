@@ -2,7 +2,6 @@
 title: 2021-2022 年度总结
 author: Wang Yan
 pubDatetime: 2022-10-03T13:06:31Z
-slug: 2021-2022-year-end-summary
 featured: false
 draft: false
 tags:

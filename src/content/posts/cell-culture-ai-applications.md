@@ -2,7 +2,6 @@
 title: 细胞培养中人工智能的应用
 author: Wang Yan
 pubDatetime: 2022-11-02T15:50:31Z
-slug: cell-culture-ai-applications
 featured: false
 draft: false
 tags:
