@@ -3,14 +3,19 @@ import type { CollectionEntry } from "astro:content";
 import { getPostUrl } from "@/utils/getPostPaths";
 import { slugifyStr } from "@/utils/slugify";
 import Datetime from "./Datetime.astro";
+import TruncateText from "./TruncateText.astro";
+import { extractExcerpt } from "@/utils/extractExcerpt";
 
 type Props = {
   variant?: "h2" | "h3";
+  maxLines?: number;
 } & CollectionEntry<"posts">;
 
-const { variant: Heading = "h2", id, data, filePath } = Astro.props;
+const { variant: Heading = "h2", id, data, filePath, body, maxLines = 2 } =
+  Astro.props;
 
 const { title, description, ...props } = data;
+const excerpt = description || extractExcerpt(body || "", 200);
 ---
 
 <li class="my-6">
@@ -27,5 +32,9 @@ const { title, description, ...props } = data;
     </Heading>
   </a>
   <Datetime {...props} />
-  <p>{description}</p>
+  <TruncateText
+    text={excerpt}
+    maxLines={maxLines}
+    class="mt-3 text-foreground/80"
+  />
 </li>
