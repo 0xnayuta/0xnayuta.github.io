@@ -52,19 +52,19 @@ const homePath = getRelativeLocaleUrl(locale, "");
         <span class="sr-only">RSS Feed</span>
       </a>
 
-      <p id="hitokoto" class="mt-4 w-full" role="status" aria-live="polite">
-        <span class="block w-full text-base">
-          <span class="text-2xl align-top">“</span>
+      <p id="hitokoto" class="hitokoto w-full" role="status" aria-live="polite">
+        <span class="hitokoto-text block w-full text-base font-semibold">
+          <span class="hitokoto-quote text-2xl align-top me-2">"</span>
           <span class="hitokoto-inner">
             世界上只有一种真正的英雄主义，那就是在认清生活的真相之后，依然热爱生活。
           </span>
-          <span class="text-2xl align-top">”</span>
+          <span class="hitokoto-quote text-2xl align-top ms-2">"</span>
         </span>
-        <span class="hitokoto-from mt-3 block w-full text-end">— 罗曼·罗兰</span>
+        <span class="hitokoto-from mt-3 block w-full text-end text-sm"> —— 罗曼·罗兰</span>
       </p>
       {
         socials.length > 0 && (
-          <div class="mt-4 flex max-sm:flex-col sm:items-center">
+          <div class="mt-8 flex max-sm:flex-col sm:items-center">
             <Socials />
           </div>
         )
@@ -132,6 +132,9 @@ const homePath = getRelativeLocaleUrl(locale, "");
     const container = document.querySelector("#hitokoto");
     if (!container) return;
 
+    const textWrapper = container.querySelector(".hitokoto-text") as
+      | HTMLElement
+      | null;
     const innerEl = container.querySelector(".hitokoto-inner") as
       | HTMLElement
       | null;
@@ -153,10 +156,12 @@ const homePath = getRelativeLocaleUrl(locale, "");
     function displayHitokoto(sentence: string, source: string) {
       if (innerEl) {
         innerEl.textContent = sentence;
-        animate(innerEl);
+      }
+      if (textWrapper) {
+        animate(textWrapper);
       }
       if (fromEl) {
-        fromEl.textContent = source ? `— ${source}` : "";
+        fromEl.textContent = source ? ` —— ${source}` : "";
         animate(fromEl);
       }
     }
@@ -219,8 +224,25 @@ const homePath = getRelativeLocaleUrl(locale, "");
 </script>
 
 <style>
+  .hitokoto {
+    margin-top: 0.75rem;
+    line-height: 1.8;
+  }
+
+  .hitokoto .hitokoto-text {
+    font-style: italic;
+    font-weight: 600;
+    opacity: 0;
+  }
+
+  .hitokoto .hitokoto-from {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+  }
+
   .fade-in {
-    animation: hitokoto-fade-in 0.45s ease;
+    animation: hitokoto-fade-in 0.45s ease forwards;
   }
 
   @keyframes hitokoto-fade-in {
