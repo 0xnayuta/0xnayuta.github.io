@@ -2,7 +2,7 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://0xnayuta.github.io",
+    url: "https://www.wangyan.life",
     title: "青枫江上",
     description: "一个极简、响应式且对 SEO 友好的 Astro 博客主题。",
     author: "Izayoi Nayuta",
