@@ -28,7 +28,7 @@ jobs:
         with:
           # path: . # 存储库中 Astro 项目的根位置。（可选）
           node-version: 22 # Astro 6.x 需要 Node.js 22+
-          package-manager: pnpm@latest # 应使用哪个 Node.js 包管理器来安装依赖项和构建站点。会根据存储库中的 lockfile 自动检测。（可选）
+          # package-manager: pnpm # 可选；已在 package.json 的 packageManager 中锁定版本
 
   deploy:
     needs: build
