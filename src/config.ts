@@ -4,7 +4,7 @@
  * Prefer editing `astro-paper.config.ts` instead of this file. This module exists to
  * apply defaults and expose a fully-resolved config shape (`ResolvedAstroPaperConfig`).
  */
-import userConfig from "@/astro-paper.config";
+import userConfig from "../astro-paper.config";
 import type { ResolvedAstroPaperConfig } from "./types/config";
 
 const DEFAULT_OG_IMAGE = "default-og.jpg";
@@ -34,5 +34,36 @@ const config: ResolvedAstroPaperConfig = {
   socials: userConfig.socials ?? [],
   shareLinks: userConfig.shareLinks ?? [],
 };
+
+export const SITE = {
+  website: config.site.url,
+  author: config.site.author,
+  profile: config.site.profile,
+  desc: config.site.description,
+  title: config.site.title,
+  ogImage: config.site.ogImage,
+  lightAndDarkMode: config.features.lightAndDarkMode,
+  postPerIndex: config.posts.perIndex,
+  postPerPage: config.posts.perPage,
+  scheduledPostMargin: config.posts.scheduledPostMargin,
+  showArchives: config.features.showArchives,
+  showBackButton: config.features.showBackButton,
+  editPost: config.features.editPost.enabled
+    ? {
+        enabled: true,
+        text: "编辑文章",
+        url: config.features.editPost.url,
+      }
+    : {
+        enabled: false,
+        text: "编辑文章",
+        url: "",
+      },
+  dynamicOgImage: config.features.dynamicOgImage,
+  dir: config.site.dir,
+  lang: config.site.lang,
+  timezone: config.site.timezone,
+  googleSiteVerification: config.site.googleVerification,
+} as const;
 
 export default config;

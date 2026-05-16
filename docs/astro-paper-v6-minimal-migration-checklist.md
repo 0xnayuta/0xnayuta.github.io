@@ -97,6 +97,7 @@ pnpm format && pnpm lint && pnpm build
 ```
 
 若失败：
+
 - 先修 `lint` 与类型错误
 - 再次执行三连命令，直到全部通过
 
