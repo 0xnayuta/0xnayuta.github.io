@@ -1,12 +1,15 @@
 ---
 // Client-side table of contents. Scans #article for h2-h4 headings,
 // generates links, and enables smooth scrolling.
-const tocTitle = "目录";
-const copyLinkLabel = "复制链接";
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
 ---
 
-<nav id="toc" class="prose-sm" data-copy-link-label={copyLinkLabel}>
-  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">{tocTitle}</h2>
+<nav id="toc" class="prose-sm" data-copy-link-label={t.toc.copyLink}>
+  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">{t.toc.title}</h2>
   <ul class="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto"></ul>
 </nav>
 
