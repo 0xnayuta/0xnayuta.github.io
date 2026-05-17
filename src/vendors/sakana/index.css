@@ -1,0 +1,124 @@
+:root,
+[data-theme="light"] {
+  --sakana-color-font: var(--foreground);
+  --sakana-color-bg: color-mix(in srgb, var(--background) 88%, var(--muted));
+  --sakana-color-bg-active: color-mix(in srgb, var(--accent) 14%, transparent);
+  --sakana-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --sakana-color-font: var(--foreground);
+  --sakana-color-bg: color-mix(in srgb, var(--background) 78%, var(--muted));
+  --sakana-color-bg-active: color-mix(in srgb, var(--accent) 22%, transparent);
+  --sakana-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.sakana-widget-wrapper {
+  pointer-events: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.sakana-widget-app {
+  pointer-events: none;
+  position: relative;
+}
+
+.sakana-widget-app *,
+.sakana-widget-app *::before,
+.sakana-widget-app *::after {
+  box-sizing: border-box;
+}
+
+.sakana-widget-canvas {
+  z-index: 10;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sakana-widget-main {
+  z-index: 20;
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sakana-widget-img {
+  z-index: 40;
+  cursor: move;
+  pointer-events: auto;
+  position: relative;
+  background: no-repeat 50% 50%;
+  background-size: cover;
+}
+
+.sakana-widget-wrapper--collapsed .sakana-widget-canvas,
+.sakana-widget-wrapper--collapsed .sakana-widget-img {
+  display: none;
+}
+
+.sakana-widget-wrapper--collapsed .sakana-widget-main {
+  justify-content: flex-end;
+}
+
+.sakana-widget-ctrl {
+  z-index: 30;
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  height: 24px;
+  width: 112px;
+  display: flex;
+  border-radius: 6px;
+  background-color: var(--sakana-color-bg);
+  box-shadow: var(--sakana-box-shadow);
+}
+
+.sakana-widget-ctrl-item {
+  height: 24px;
+  width: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--sakana-color-font);
+  background-color: transparent;
+}
+
+.sakana-widget-ctrl-item:hover,
+.sakana-widget-ctrl-item:focus-visible {
+  outline: none;
+  color: var(--sakana-color-font);
+  background-color: var(--sakana-color-bg-active);
+}
+
+.sakana-widget-ctrl-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.sakana-widget-ctrl-item:disabled:hover,
+.sakana-widget-ctrl-item:disabled:focus-visible {
+  background-color: transparent;
+}
+
+.sakana-widget-icon {
+  height: 18px;
+  width: 18px;
+}
+
+.sakana-widget-icon--rotate {
+  animation: sakana-widget-spin 2s linear infinite;
+}
+
+@keyframes sakana-widget-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

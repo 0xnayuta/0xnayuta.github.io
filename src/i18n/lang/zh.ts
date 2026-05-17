@@ -70,6 +70,13 @@ export default {
     goToPreviousPage: "前往上一页",
     goToNextPage: "前往下一页",
   },
+  sakana: {
+    nextCharacter: "切换角色",
+    autoMode: "自动模式",
+    repository: "Sakana Widget 原始仓库",
+    hide: "收起 Sakana 小组件",
+    show: "展开 Sakana 小组件",
+  },
   toc: {
     title: "目录",
     copyLink: "复制链接",

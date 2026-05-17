@@ -67,6 +67,13 @@ export interface UIStrings {
     goToPreviousPage: string;
     goToNextPage: string;
   };
+  sakana: {
+    nextCharacter: string;
+    autoMode: string;
+    repository: string;
+    hide: string;
+    show: string;
+  };
   toc: {
     title: string;
     copyLink: string;

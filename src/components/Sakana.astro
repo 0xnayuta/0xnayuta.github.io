@@ -1,0 +1,150 @@
+---
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+import "@/vendors/sakana/index.css";
+
+type SakanaPlacement = "left" | "right";
+
+const placement: SakanaPlacement = "left";
+const locale = Astro.currentLocale ?? config.site.lang;
+const labels = useTranslations(locale).sakana;
+---
+
+<div
+  id="sakana-shell"
+  data-placement={placement}
+  class="pointer-events-none fixed bottom-3 z-30 hidden h-[180px] w-[180px] sm:bottom-6 sm:block"
+>
+  <div
+    id="sakana-widget"
+    class="pointer-events-none h-[180px] w-[180px]"
+    data-label-next-character={labels.nextCharacter}
+    data-label-auto-mode={labels.autoMode}
+    data-label-repository={labels.repository}
+    data-label-hide={labels.hide}
+    data-label-show={labels.show}
+  ></div>
+</div>
+
+<style>
+  #sakana-shell[data-placement="left"] {
+    left: 0.75rem;
+  }
+
+  #sakana-shell[data-placement="right"] {
+    right: 0.75rem;
+  }
+
+  @media (min-width: 640px) {
+    #sakana-shell[data-placement="left"] {
+      left: 1.5rem;
+    }
+
+    #sakana-shell[data-placement="right"] {
+      right: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  import SakanaWidget from "@/vendors/sakana";
+
+  type SakanaController = {
+    widget?: SakanaWidget;
+    mountEl?: HTMLElement | null;
+    listenersBound?: boolean;
+    rafId?: number;
+  };
+
+  type SakanaWindow = Window & {
+    __sakana?: SakanaController;
+  };
+
+  const controller = ((window as SakanaWindow).__sakana ??= {});
+  const desktopMediaQuery = window.matchMedia("(min-width: 640px)");
+
+  function persistSakana() {
+    controller.widget?.persistState();
+  }
+
+  function destroySakana() {
+    if (controller.rafId) {
+      cancelAnimationFrame(controller.rafId);
+      controller.rafId = undefined;
+    }
+    persistSakana();
+    controller.widget?.unmount();
+    controller.widget = undefined;
+    controller.mountEl = null;
+  }
+
+  function getSakanaLabels(element: HTMLElement) {
+    return {
+      nextCharacter: element.dataset.labelNextCharacter,
+      autoMode: element.dataset.labelAutoMode,
+      repository: element.dataset.labelRepository,
+      hide: element.dataset.labelHide,
+      show: element.dataset.labelShow,
+    };
+  }
+
+  function mountSakana() {
+    const element = document.querySelector<HTMLElement>("#sakana-widget");
+    if (!element) {
+      destroySakana();
+      return;
+    }
+
+    if (
+      !desktopMediaQuery.matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      destroySakana();
+      return;
+    }
+
+    if (controller.widget && controller.mountEl === element) return;
+
+    destroySakana();
+
+    controller.widget = new SakanaWidget({
+      size: 180,
+      character: "chisato",
+      controls: true,
+      rod: true,
+      draggable: true,
+      title: true,
+      saveState: true,
+      stateKey: "sakana-widget-status",
+      labels: getSakanaLabels(element),
+    }).mount(element);
+    controller.mountEl = element;
+  }
+
+  function scheduleMountSakana() {
+    if (controller.rafId) cancelAnimationFrame(controller.rafId);
+    controller.rafId = requestAnimationFrame(() => {
+      controller.rafId = undefined;
+      mountSakana();
+    });
+  }
+
+  function handleViewportChange(event: MediaQueryListEvent) {
+    if (event.matches) {
+      scheduleMountSakana();
+      return;
+    }
+
+    destroySakana();
+  }
+
+  scheduleMountSakana();
+
+  if (!controller.listenersBound) {
+    document.addEventListener("astro:page-load", scheduleMountSakana);
+    document.addEventListener("astro:before-swap", destroySakana);
+    window.addEventListener("pagehide", persistSakana);
+    desktopMediaQuery.addEventListener("change", handleViewportChange);
+    controller.listenersBound = true;
+  }
+</script>

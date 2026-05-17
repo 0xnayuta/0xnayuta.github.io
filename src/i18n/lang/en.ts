@@ -70,6 +70,13 @@ export default {
     goToPreviousPage: "Go to previous page",
     goToNextPage: "Go to next page",
   },
+  sakana: {
+    nextCharacter: "Next character",
+    autoMode: "Auto mode",
+    repository: "Original Sakana Widget repository",
+    hide: "Collapse Sakana widget",
+    show: "Expand Sakana widget",
+  },
   toc: {
     title: "Contents",
     copyLink: "Copy link",
