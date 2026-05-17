@@ -1,0 +1,72 @@
+name: PR Checks (Font Subset + Build)
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Detect whether font subsetting is required
+        id: subset_check
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          echo "Comparing changes: $BASE..$HEAD"
+          changed_files="$(git diff --name-only "$BASE" "$HEAD" || true)"
+          echo "$changed_files"
+
+          if echo "$changed_files" | grep -Eq '^(src/assets/fonts/raw/|src/content/.*\.md$|src/i18n/lang/.*\.ts$|astro-paper\.config\.ts$)'; then
+            echo "needs_subset=true" >> "$GITHUB_OUTPUT"
+            echo "Font subset required."
+          else
+            echo "needs_subset=false" >> "$GITHUB_OUTPUT"
+            echo "Font subset not required."
+          fi
+
+      - name: Run font subsetting
+        if: steps.subset_check.outputs.needs_subset == 'true'
+        run: node scripts/subset-fonts.js
+
+      - name: Enforce committed subset fonts (B strategy)
+        if: steps.subset_check.outputs.needs_subset == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- src/assets/fonts/; then
+            echo "❌ Font subset outputs changed after running scripts/subset-fonts.js"
+            echo "Please run the script locally and commit updated files in src/assets/fonts/."
+            git --no-pager diff -- src/assets/fonts/
+            exit 1
+          fi
+
+      - name: Lint and build
+        run: pnpm lint && pnpm build
