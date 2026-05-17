@@ -31,9 +31,6 @@ importers:
       lodash.kebabcase:
         specifier: ^4.1.1
         version: 4.1.1
-      remark-collapse:
-        specifier: ^0.1.2
-        version: 0.1.2
       remark-toc:
         specifier: ^9.0.0
         version: 9.0.0
@@ -3127,12 +3124,6 @@ packages:
         integrity: sha512-0ulfdQOM3ysHhCJ1p06l0b0VKlhU0wuQs3thxZQagjcjPrlFRqY215uZGHHJan9GEAXd9MbfPjFJz+qMkVR6zQ==,
       }
 
-  mdast-util-heading-range@2.1.5:
-    resolution:
-      {
-        integrity: sha512-jXbFD0C+MfRkwsaze+btzG9CmVrxnc5kpcJLtx3SvSlPWnNdGMlDRHKDB9/TIPEq9nRHnkixppT8yvaUJ5agJg==,
-      }
-
   mdast-util-phrasing@4.1.0:
     resolution:
       {
@@ -3149,12 +3140,6 @@ packages:
     resolution:
       {
         integrity: sha512-xj68wMTvGXVOKonmog6LwyJKrYXZPvlwabaryTjLh9LuvovB/KAH+kvi8Gjj+7rJjsFi23nkUxRQv1KqSroMqA==,
-      }
-
-  mdast-util-to-string@1.1.0:
-    resolution:
-      {
-        integrity: sha512-jVU0Nr2B9X3MU4tSK7JP1CMkSvOj7X5l/GboG1tKRw52lLF1x2Ju92Ms9tNetCcbfX3hzlM73zYo2NKkWSfF/A==,
       }
 
   mdast-util-to-string@4.0.0:
@@ -3817,12 +3802,6 @@ packages:
     resolution:
       {
         integrity: sha512-j31mdaRFrwFRUIlxGeuPXXKWQxet52RBQRvCmzl5eCefn/KGbomK5GMHNMsOJf55fgo3qw5tST5neDuarDYR2A==,
-      }
-
-  remark-collapse@0.1.2:
-    resolution:
-      {
-        integrity: sha512-x2lhtaT4nR1Tkp/hftoeiMHbdAntxu5Q9D6lymwMqUtoF2pg3bqNaa8NO/8yyOVhddYk0d0dkhGc+avGUf0lZA==,
       }
 
   remark-gfm@4.0.1:
@@ -6544,10 +6523,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mdast-util-heading-range@2.1.5:
-    dependencies:
-      mdast-util-to-string: 1.1.0
-
   mdast-util-phrasing@4.1.0:
     dependencies:
       "@types/mdast": 4.0.4
@@ -6576,8 +6551,6 @@ snapshots:
       micromark-util-decode-string: 2.0.1
       unist-util-visit: 5.1.0
       zwitch: 2.0.4
-
-  mdast-util-to-string@1.1.0: {}
 
   mdast-util-to-string@4.0.0:
     dependencies:
@@ -7011,11 +6984,6 @@ snapshots:
       rehype-parse: 9.0.1
       rehype-stringify: 10.0.1
       unified: 11.0.5
-
-  remark-collapse@0.1.2:
-    dependencies:
-      mdast-util-heading-range: 2.1.5
-      mdast-util-to-string: 1.1.0
 
   remark-gfm@4.0.1:
     dependencies:
