@@ -20,6 +20,12 @@ const copyLinkLabel = "复制链接";
       .replace(/\s+/g, "-");
   }
 
+  function getHeadingText(heading: HTMLElement): string {
+    const clone = heading.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll(".heading-link").forEach((el) => el.remove());
+    return (clone.textContent || "").trim();
+  }
+
   function addHeadingLinks(copyLinkLabel: string) {
     const headings = document.querySelectorAll(
       "#article h2, #article h3, #article h4, #article h5, #article h6"
@@ -32,7 +38,7 @@ const copyLinkLabel = "复制链接";
         "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
       const el = heading as HTMLElement;
       if (!el.id || el.id.trim() === "") {
-        el.id = slugify(el.innerText || el.textContent || "");
+        el.id = slugify(getHeadingText(el));
       }
       link.href = "#" + el.id;
       link.setAttribute("aria-label", copyLinkLabel);
@@ -63,12 +69,13 @@ const copyLinkLabel = "复制链接";
 
     headingEls.forEach((h) => {
       const el = h as HTMLElement;
+      const headingText = getHeadingText(el);
       if (!el.id || el.id.trim() === "") {
-        el.id = slugify(el.innerText || el.textContent || "");
+        el.id = slugify(headingText);
       }
       headings.push({
         id: el.id,
-        text: el.innerText || el.textContent || "",
+        text: headingText,
         level: parseInt(el.tagName.replace("H", "")),
       });
     });
