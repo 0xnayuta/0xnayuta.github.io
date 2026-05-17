@@ -1,5 +1,7 @@
 # 字体改造计划与 OG 字体策略
 
+> 状态：✅ 已完成
+
 ## 背景与目标
 
 当前项目已恢复动态 OG 生成能力（`/og.png` 与 `/posts/**/index.png`），并使用 Astro v6 官方方案（`satori + sharp + astro fonts`）。
