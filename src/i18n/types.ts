@@ -30,6 +30,10 @@ export interface UIStrings {
     featured: string;
     recentPosts: string;
     allPosts: string;
+    heroTitle: string;
+    rssFeed: string;
+    defaultQuote: string;
+    defaultQuoteSource: string;
   };
   footer: {
     copyright: string;
@@ -61,9 +65,14 @@ export interface UIStrings {
     goToPreviousPage: string;
     goToNextPage: string;
   };
+  toc: {
+    title: string;
+    copyLink: string;
+  };
   notFound: {
     title: string;
     message: string;
     goHome: string;
+    mascot: string;
   };
 }
