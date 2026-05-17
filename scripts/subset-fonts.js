@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
-import Fontmin from "fontmin";
+import subsetFont from "subset-font";
 
 const RAW_DIR = "src/assets/fonts/raw";
 const OUT_DIR = "src/assets/fonts";
-const TMP_DIR = "/tmp/font-subset-output";
 const IS_DRY_RUN = process.argv.includes("--dry-run");
 
 function walkFiles(dir, predicate, result = []) {
@@ -60,43 +59,27 @@ function getRawFonts() {
   return fonts;
 }
 
-function ensureDirs() {
+function ensureOutDir() {
   if (!fs.existsSync(OUT_DIR)) {
     fs.mkdirSync(OUT_DIR, { recursive: true });
   }
-  fs.rmSync(TMP_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TMP_DIR, { recursive: true });
 }
 
-function subsetFonts(text) {
-  return new Promise((resolve, reject) => {
-    new Fontmin()
-      .src(path.join(RAW_DIR, "*.ttf"))
-      .use(Fontmin.glyph({ text, hinting: false }))
-      .dest(TMP_DIR)
-      .run((err, files) => {
-        if (err) return reject(err);
-        resolve(files);
-      });
-  });
-}
+async function subsetSingleFont(fontName, text) {
+  const rawPath = path.join(RAW_DIR, fontName);
+  const outPath = path.join(OUT_DIR, fontName);
 
-function copySubsetFonts(files) {
-  for (const file of files) {
-    const name = path.basename(file.path);
-    const rawPath = path.join(RAW_DIR, name);
-    const outPath = path.join(OUT_DIR, name);
+  const source = fs.readFileSync(rawPath);
+  const subset = await subsetFont(source, text, { targetFormat: "sfnt" });
+  fs.writeFileSync(outPath, subset);
 
-    fs.copyFileSync(file.path, outPath);
+  const rawSize = fs.statSync(rawPath).size;
+  const outSize = fs.statSync(outPath).size;
+  const ratio = ((outSize / rawSize) * 100).toFixed(2);
 
-    const rawSize = fs.existsSync(rawPath) ? fs.statSync(rawPath).size : 0;
-    const outSize = fs.statSync(outPath).size;
-    const ratio = rawSize > 0 ? ((outSize / rawSize) * 100).toFixed(2) : "N/A";
-
-    console.log(
-      `${name}: ${(rawSize / 1024).toFixed(1)} KB -> ${(outSize / 1024).toFixed(1)} KB (${ratio}%)`,
-    );
-  }
+  console.log(
+    `${fontName}: ${(rawSize / 1024).toFixed(1)} KB -> ${(outSize / 1024).toFixed(1)} KB (${ratio}%)`,
+  );
 }
 
 async function main() {
@@ -116,14 +99,12 @@ async function main() {
     return;
   }
 
-  ensureDirs();
-  const files = await subsetFonts(text);
-  if (!files || files.length === 0) {
-    throw new Error("No subset font files generated.");
+  ensureOutDir();
+
+  for (const fontName of rawFonts) {
+    await subsetSingleFont(fontName, text);
   }
 
-  copySubsetFonts(files);
-  fs.rmSync(TMP_DIR, { recursive: true, force: true });
   console.log("Font subsetting completed.");
 }
 
