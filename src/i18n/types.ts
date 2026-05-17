@@ -24,6 +24,8 @@ export interface UIStrings {
     prev: string;
     next: string;
     page: string;
+    pageLabel: (page: number) => string;
+    pagedLabel: (label: string, page: number) => string;
   };
   home: {
     socialLinks: string;
