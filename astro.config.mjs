@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, envField } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
@@ -22,7 +22,8 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => config.features.showArchives || !page.endsWith("/archives"),
+      filter: (page) =>
+        config.features.showArchives || !page.endsWith("/archives"),
     }),
   ],
   markdown: {
@@ -62,6 +63,68 @@ export default defineConfig({
     responsiveStyles: true,
     layout: "constrained",
   },
+  fonts: [
+    {
+      name: "font-sans-zh",
+      cssVariable: "--font-sans-zh",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-sans-en",
+      cssVariable: "--font-sans-en",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-mono",
+      cssVariable: "--font-mono",
+      provider: fontProviders.local(),
+      fallbacks: ["monospace"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/mono.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-og",
+      cssVariable: "--font-og",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+  ],
   env: {
     schema: {
       PUBLIC_GOOGLE_SITE_VERIFICATION: envField.string({
