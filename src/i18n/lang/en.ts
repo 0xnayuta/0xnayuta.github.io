@@ -26,6 +26,8 @@ export default {
     prev: "Prev",
     next: "Next",
     page: "Page",
+    pageLabel: (page) => `page ${page}`,
+    pagedLabel: (label, page) => `${label} (page ${page})`,
   },
   home: {
     socialLinks: "Social Links",

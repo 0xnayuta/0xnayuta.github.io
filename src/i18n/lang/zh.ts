@@ -25,7 +25,9 @@ export default {
   pagination: {
     prev: "上一页",
     next: "下一页",
-    page: "Page",
+    page: "页",
+    pageLabel: (page) => `第 ${page} 页`,
+    pagedLabel: (label, page) => `${label}（第 ${page} 页）`,
   },
   home: {
     socialLinks: "社交链接",
