@@ -11,6 +11,8 @@ export default defineAstroPaperConfig({
     lang: "zh",
     timezone: "Asia/Shanghai",
     dir: "ltr",
+    icp: "鄂ICP备2022014375号-1",
+    icpUrl: "https://beian.miit.gov.cn",
   },
   posts: {
     perPage: 5,
@@ -19,7 +21,7 @@ export default defineAstroPaperConfig({
   },
   features: {
     lightAndDarkMode: true,
-    dynamicOgImage: false,
+    dynamicOgImage: true,
     showArchives: true,
     showBackButton: true,
     editPost: {
