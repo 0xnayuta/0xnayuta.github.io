@@ -19,6 +19,10 @@ interface SiteConfig {
   dir?: "ltr" | "rtl" | "auto";
   /** Google Search Console verification meta tag value */
   googleVerification?: string;
+  /** ICP filing number displayed in footer (China) */
+  icp?: string;
+  /** Link for ICP filing number, defaults to MIIT site when omitted */
+  icpUrl?: string;
 }
 
 interface PostsConfig {
@@ -115,7 +119,7 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "googleVerification">;
+  Pick<SiteConfig, "profile" | "googleVerification" | "icp" | "icpUrl">;
 
 export interface ResolvedAstroPaperConfig {
   site: ResolvedSiteConfig;

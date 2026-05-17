@@ -1,32 +1,36 @@
 // @ts-check
-import { defineConfig, envField } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import remarkToc from "remark-toc";
-import remarkCollapse from "remark-collapse";
+import remarkCollapseToc from "./src/utils/remark/remark-collapse-toc";
 import {
   transformerNotationDiff,
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
-import { SITE } from "./src/config";
+import config from "./src/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: SITE.website,
+  site: config.site.url,
   i18n: {
-    defaultLocale: SITE.lang,
-    locales: [SITE.lang],
+    defaultLocale: config.site.lang,
+    locales: [config.site.lang],
   },
   integrations: [
     sitemap({
-      filter: (page) => SITE.showArchives || !page.endsWith("/archives"),
+      filter: (page) =>
+        config.features.showArchives || !page.endsWith("/archives"),
     }),
   ],
   markdown: {
-    remarkPlugins: [remarkToc, [remarkCollapse, { test: "Table of contents" }]],
+    remarkPlugins: [
+      remarkToc,
+      [remarkCollapseToc, { test: "Table of contents" }],
+    ],
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
       themes: { light: "min-light", dark: "night-owl" },
@@ -59,6 +63,68 @@ export default defineConfig({
     responsiveStyles: true,
     layout: "constrained",
   },
+  fonts: [
+    {
+      name: "font-sans-zh",
+      cssVariable: "--font-sans-zh",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-sans-en",
+      cssVariable: "--font-sans-en",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-mono",
+      cssVariable: "--font-mono",
+      provider: fontProviders.local(),
+      fallbacks: ["monospace"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/mono.ttf"],
+          },
+        ],
+      },
+    },
+    {
+      name: "font-og",
+      cssVariable: "--font-og",
+      provider: fontProviders.local(),
+      fallbacks: ["sans-serif"],
+      options: {
+        variants: [
+          {
+            weight: 400,
+            style: "normal",
+            src: ["./src/assets/fonts/sans-zh.ttf"],
+          },
+        ],
+      },
+    },
+  ],
   env: {
     schema: {
       PUBLIC_GOOGLE_SITE_VERIFICATION: envField.string({

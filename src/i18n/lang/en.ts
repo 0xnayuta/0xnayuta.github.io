@@ -34,6 +34,11 @@ export default {
     featured: "Featured",
     recentPosts: "Recent Posts",
     allPosts: "All Posts",
+    heroTitle: "Ciallo～(∠・ω< )⌒★",
+    rssFeed: "RSS Feed",
+    defaultQuote:
+      "There is only one heroism in the world: to see the world as it is, and to love it.",
+    defaultQuoteSource: "Romain Rolland",
   },
   footer: {
     copyright: "Copyright",
@@ -65,9 +70,14 @@ export default {
     goToPreviousPage: "Go to previous page",
     goToNextPage: "Go to next page",
   },
+  toc: {
+    title: "Contents",
+    copyLink: "Copy link",
+  },
   notFound: {
     title: "404 Not Found",
     message: "Page Not Found",
     goHome: "Go back home",
+    mascot: "Ciallo～(∠・ω< )⌒★",
   },
 } satisfies UIStrings;

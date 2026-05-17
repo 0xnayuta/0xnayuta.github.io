@@ -13,10 +13,7 @@
       "fast-xml-parser@<5.7.0": ">=5.7.0",
       "smol-toml@<1.6.1": ">=1.6.1",
       "yaml@>=2.0.0 <2.8.3": ">=2.8.3"
-    },
-    "minimumReleaseAgeExclude": [
-      "@typescript-eslint/scope-manager"
-    ]
+    }
   },
   "scripts": {
     "dev": "astro dev",
@@ -38,7 +35,6 @@
     "astro": "^6.3.3",
     "dayjs": "^1.11.20",
     "lodash.kebabcase": "^4.1.1",
-    "remark-collapse": "^0.1.2",
     "remark-toc": "^9.0.0",
     "satori": "^0.26.0",
     "sharp": "^0.34.5",
@@ -55,6 +51,7 @@
     "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^10.3.0",
     "eslint-plugin-astro": "^1.7.0",
+    "fontmin": "^1.1.1",
     "globals": "^17.6.0",
     "pagefind": "^1.5.2",
     "png-to-ico": "^3.0.1",

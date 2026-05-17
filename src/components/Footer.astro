@@ -29,10 +29,20 @@ const currentYear = new Date().getFullYear();
         {config.site.title}
       </a>
       <span>&nbsp;{t.footer.allRightsReserved}</span>
-      <span class="hidden sm:inline">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
-      <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">
-        鄂ICP备2022014375号-1
-      </a>
+      {
+        config.site.icp && (
+          <>
+            <span class="hidden sm:inline">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+            <a
+              href={config.site.icpUrl ?? "https://beian.miit.gov.cn"}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {config.site.icp}
+            </a>
+          </>
+        )
+      }
     </div>
   </div>
 </footer>
