@@ -11,18 +11,18 @@ import {
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
-import { SITE } from "./src/config";
+import config from "./src/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: SITE.website,
+  site: config.site.url,
   i18n: {
-    defaultLocale: SITE.lang,
-    locales: [SITE.lang],
+    defaultLocale: config.site.lang,
+    locales: [config.site.lang],
   },
   integrations: [
     sitemap({
-      filter: (page) => SITE.showArchives || !page.endsWith("/archives"),
+      filter: (page) => config.features.showArchives || !page.endsWith("/archives"),
     }),
   ],
   markdown: {
