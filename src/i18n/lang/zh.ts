@@ -32,6 +32,11 @@ export default {
     featured: "精选文章",
     recentPosts: "最新文章",
     allPosts: "全部文章",
+    heroTitle: "Ciallo～(∠・ω< )⌒★",
+    rssFeed: "RSS 订阅",
+    defaultQuote:
+      "世界上只有一种真正的英雄主义，那就是在认清生活的真相之后，依然热爱生活。",
+    defaultQuoteSource: "罗曼·罗兰",
   },
   footer: {
     copyright: "Copyright",
@@ -63,9 +68,14 @@ export default {
     goToPreviousPage: "前往上一页",
     goToNextPage: "前往下一页",
   },
+  toc: {
+    title: "目录",
+    copyLink: "复制链接",
+  },
   notFound: {
     title: "404 Not Found",
     message: "页面不存在",
     goHome: "返回首页",
+    mascot: "Ciallo～(∠・ω< )⌒★",
   },
 } satisfies UIStrings;

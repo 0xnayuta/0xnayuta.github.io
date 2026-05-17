@@ -1,10 +1,15 @@
 ---
 // Client-side table of contents. Scans #article for h2-h4 headings,
 // generates links, and enables smooth scrolling.
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
 ---
 
-<nav id="toc" class="prose-sm">
-  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">目录</h2>
+<nav id="toc" class="prose-sm" data-copy-link-label={t.toc.copyLink}>
+  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">{t.toc.title}</h2>
   <ul class="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto"></ul>
 </nav>
 
@@ -18,7 +23,7 @@
       .replace(/\s+/g, "-");
   }
 
-  function addHeadingLinks() {
+  function addHeadingLinks(copyLinkLabel: string) {
     const headings = document.querySelectorAll(
       "#article h2, #article h3, #article h4, #article h5, #article h6"
     );
@@ -33,7 +38,7 @@
         el.id = slugify(el.innerText || el.textContent || "");
       }
       link.href = "#" + el.id;
-      link.setAttribute("aria-label", "复制链接");
+      link.setAttribute("aria-label", copyLinkLabel);
       heading.appendChild(link);
     });
   }
@@ -53,7 +58,8 @@
       return;
     }
 
-    addHeadingLinks();
+    const copyLinkLabel = container.dataset.copyLinkLabel ?? "Copy link";
+    addHeadingLinks(copyLinkLabel);
 
     const headingEls = article.querySelectorAll("h2, h3, h4");
     const headings: { id: string; text: string; level: number }[] = [];
