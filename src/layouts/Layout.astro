@@ -1,4 +1,5 @@
 ---
+import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { resolveDefaultOgImagePath } from "@/utils/resolveDefaultOgImagePath";
@@ -42,6 +43,12 @@ const rssHref = getRelativeLocaleUrl(
     <link rel="icon" href={getAssetPath("favicon.ico")} />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
+
+    <!-- Font -->
+    <Font cssVariable="--font-sans-zh" />
+    <Font cssVariable="--font-sans-en" />
+    <Font cssVariable="--font-mono" />
+    <Font cssVariable="--font-og" />
 
     <!-- Primary meta -->
     <title>{title}</title>
