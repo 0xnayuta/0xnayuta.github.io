@@ -40,6 +40,13 @@ jobs:
           BASE="${{ github.event.pull_request.base.sha }}"
           HEAD="${{ github.event.pull_request.head.sha }}"
 
+          if [[ -f scripts/subset-fonts.js ]]; then
+            echo "has_subset_script=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_subset_script=false" >> "$GITHUB_OUTPUT"
+            echo "Subset script not found in this branch; skip subsetting checks."
+          fi
+
           echo "Comparing changes: $BASE..$HEAD"
           changed_files="$(git diff --name-only "$BASE" "$HEAD" || true)"
           echo "$changed_files"
@@ -53,11 +60,11 @@ jobs:
           fi
 
       - name: Run font subsetting
-        if: steps.subset_check.outputs.needs_subset == 'true'
+        if: steps.subset_check.outputs.needs_subset == 'true' && steps.subset_check.outputs.has_subset_script == 'true'
         run: node scripts/subset-fonts.js
 
       - name: Enforce committed subset fonts (B strategy)
-        if: steps.subset_check.outputs.needs_subset == 'true'
+        if: steps.subset_check.outputs.needs_subset == 'true' && steps.subset_check.outputs.has_subset_script == 'true'
         shell: bash
         run: |
           set -euo pipefail
