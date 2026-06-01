@@ -1,7 +1,7 @@
 {
   "name": "astro-paper",
   "type": "module",
-  "version": "5.5.1",
+  "version": "6.0.0",
   "packageManager": "pnpm@11.1.1",
   "pnpm": {
     "overrides": {
