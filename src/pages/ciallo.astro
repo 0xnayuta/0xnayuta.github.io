@@ -1,0 +1,129 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import CialloOverlay from "@/components/ciallo/CialloOverlay.astro";
+import CialloGameWrapper from "@/components/ciallo/CialloGameWrapper.astro";
+---
+
+<Layout>
+  <Header />
+
+  <main
+    id="ciallo-page"
+    class="flex min-h-0 flex-1 flex-col items-center overflow-hidden"
+  >
+    <div class="relative flex w-full max-w-3xl flex-1 flex-col" style="min-height: 0">
+      <CialloGameWrapper />
+      <CialloOverlay />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ---- ciallo design tokens (mapped to site theme) ---- */
+  #ciallo-page {
+    --color-bg: var(--background);
+    --color-text: var(--foreground);
+    --color-text-muted: var(--muted-foreground);
+    --color-shake-1: var(--accent);
+    --dur-overlay: 0.4s;
+    --dur-hint: 0.3s;
+  }
+
+  /* ---- responsive canvas ---- */
+  #ciallo-page canvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    object-fit: contain;
+  }
+</style>
+
+<script>
+  import { CialloGame } from "@/scripts/ciallo-game";
+  import { spawnFloatingCiallo } from "@/components/ciallo/ciallo-effects";
+
+  const game = new CialloGame(document.getElementById("gameContainer")!);
+
+  const scoreEl = document.getElementById("scoreVal")!;
+  const hiScoreEl = document.getElementById("hiScoreVal")!;
+  const msgOverlay = document.getElementById("msgOverlay")!;
+  const pressHint = document.getElementById("pressHint")!;
+
+  function pad5(n: number): string {
+    return String(n).padStart(5, "0");
+  }
+
+  function startGame(): void {
+    if (msgOverlay.classList.contains("is-hidden")) return;
+    msgOverlay.classList.add("is-hidden");
+    pressHint.classList.add("is-visible");
+    game.start();
+  }
+
+  // ---- game callbacks ----
+  game.onScore = (s: number) => { scoreEl.textContent = pad5(s); };
+  game.onHighScore = (s: number) => { hiScoreEl.textContent = pad5(s); };
+  game.onGameOver = () => { pressHint.classList.remove("is-visible"); };
+
+  // ---- events ----
+  let touchHandled = false;
+
+  document.addEventListener("click", (e) => {
+    if (touchHandled) return;
+    spawnFloatingCiallo(e.pageX, e.pageY);
+    if (!msgOverlay.classList.contains("is-hidden")) startGame();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " ") {
+      spawnFloatingCiallo(100, 200);
+      startGame();
+      e.preventDefault();
+    }
+  });
+
+  // ---- touch / swipe ----
+  let touchY = 0;
+  let touchX = 0;
+  let touchT = 0;
+
+  document.addEventListener("touchstart", (e) => {
+    touchY = e.touches[0].clientY;
+    touchX = e.touches[0].clientX;
+    touchT = Date.now();
+  }, { passive: true });
+
+  document.addEventListener("touchend", (e) => {
+    const dy = e.changedTouches[0].clientY - touchY;
+    const dx = e.changedTouches[0].clientX - touchX;
+    const dt = Date.now() - touchT;
+    const cx = e.changedTouches[0].clientX;
+    const cy = e.changedTouches[0].clientY;
+
+    const isSwipe = dy < -30 && Math.abs(dx) < Math.abs(dy) * 2;
+    const isTap = Math.abs(dx) < 20 && Math.abs(dy) < 20 && dt < 300;
+
+    if (isSwipe || isTap) {
+      touchHandled = true;
+      setTimeout(() => { touchHandled = false; }, 350);
+      e.preventDefault();
+    }
+
+    if (isSwipe) {
+      if (msgOverlay.classList.contains("is-hidden")) {
+        game.jump();
+      } else {
+        startGame();
+      }
+    } else if (isTap) {
+      spawnFloatingCiallo(cx, cy);
+      if (!msgOverlay.classList.contains("is-hidden")) {
+        startGame();
+      }
+    }
+  }, { passive: false });
+</script>

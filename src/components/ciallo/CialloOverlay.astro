@@ -1,0 +1,71 @@
+---
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
+---
+
+<div id="msgOverlay" class="msg-overlay">
+  <h1>
+    {t.ciallo.pressSpaceAction}&nbsp;
+    <span class="ciallo-shake" aria-label="Ciallo～(∠・ω&lt; )⌒★">Ciallo～(∠・ω&lt; )⌒★</span>
+  </h1>
+</div>
+
+<style>
+.msg-overlay {
+    position: absolute;
+    z-index: 100;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    cursor: pointer;
+    font-family: var(--font-ui);
+  }
+  .msg-overlay.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .msg-overlay h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    user-select: none;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  /* ---- shake + rainbow text (single element, hue-rotate) ---- */
+  .ciallo-shake {
+    display: inline-block;
+    font-weight: 700;
+    color: var(--color-shake-1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ciallo-shake {
+      animation: shake 0.5s infinite, rainbow 3s linear infinite;
+    }
+    .msg-overlay {
+      transition: opacity var(--dur-overlay);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-1px, -1px); }
+      50% { transform: translate(1px, 1px); }
+      75% { transform: translate(-1px, 1px); }
+    }
+
+    @keyframes rainbow {
+      to { filter: hue-rotate(360deg); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ciallo-shake { animation: none; }
+    .msg-overlay { transition: none; }
+  }
+</style>

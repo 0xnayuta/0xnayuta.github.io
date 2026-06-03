@@ -87,4 +87,9 @@ export default {
     goHome: "Go back home",
     mascot: "Ciallo～(∠・ω< )⌒★",
   },
+  ciallo: {
+    pressSpaceAction: "Press Space to",
+    highScore: "HI",
+    pressHint: "[ Space / Tap ]",
+  },
 } satisfies UIStrings;

@@ -87,4 +87,9 @@ export default {
     goHome: "返回首页",
     mascot: "Ciallo～(∠・ω< )⌒★",
   },
+  ciallo: {
+    pressSpaceAction: "按空格键",
+    highScore: "最高分",
+    pressHint: "[ 空格 / 触控 ]",
+  },
 } satisfies UIStrings;

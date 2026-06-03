@@ -1,0 +1,72 @@
+---
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
+---
+
+<div id="gameContainer" class="game-wrap"></div>
+
+<div id="scoreDisplay" class="score-display">
+  <span id="scoreVal">00000</span><br />
+  <span class="hi">{t.ciallo.highScore} <span id="hiScoreVal">00000</span></span>
+</div>
+
+<div id="pressHint" class="press-hint">{t.ciallo.pressHint}</div>
+
+<style>
+  .game-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .score-display {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    z-index: 10;
+    font-size: 14px;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    text-align: right;
+    line-height: 1.6;
+    user-select: none;
+  }
+  .score-display .hi {
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+
+  .press-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 15vh;
+    pointer-events: none;
+    z-index: 5;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    user-select: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .press-hint {
+      opacity: 0;
+      transition: opacity var(--dur-hint);
+    }
+    .press-hint.is-visible {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .press-hint {
+      opacity: 1;
+    }
+  }
+</style>

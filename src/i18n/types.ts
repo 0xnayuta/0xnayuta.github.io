@@ -84,4 +84,9 @@ export interface UIStrings {
     goHome: string;
     mascot: string;
   };
+  ciallo: {
+    pressSpaceAction: string;
+    highScore: string;
+    pressHint: string;
+  };
 }
