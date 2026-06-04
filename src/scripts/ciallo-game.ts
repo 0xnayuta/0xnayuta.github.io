@@ -3,9 +3,9 @@
 
 import spriteUrl from "../assets/images/sprite.png";
 
-const W = 600,
-  H = 200;
-const GROUND_Y = 177;
+const W = 720,
+  H = 300;
+const GROUND_Y = 277;
 const DINO_X = 50;
 
 // physics
@@ -17,7 +17,7 @@ const SQUAT_SHIFT = 8;
 const SPEED_START = 6;
 const SPEED_MAX = 13;
 const ACCEL = 0.001;
-const CLEAR_TIME = 3000; // ms before first obstacle appears
+const CLEAR_TIME = 1000; // ms before first obstacle appears
 
 type Phase = "waiting" | "playing" | "crashed";
 
@@ -360,11 +360,10 @@ export class CialloGame {
       for (const o of this.obstacles) {
         o.x -= this.speed * dt * 0.06;
       }
-      this.obstacles = this.obstacles.filter((o) => o.x + o.w > -50);
+      this.obstacles = this.obstacles.filter((o) => o.x + o.w > 0);
 
       // collision — two-layer: AABB outer → sub-box inner
-      if (this.obstacles[0]) {
-        const o = this.obstacles[0];
+      for (const o of this.obstacles) {
         const p: Rect = {
           x: this.px + 1,
           y: this.py + 1,
@@ -438,8 +437,15 @@ export class CialloGame {
 
   // ---- spawn helpers ----
   private calcGap(): number {
-    const base = 180 + Math.random() * 100;
-    return Math.max(base - this.speed * 10, 100);
+    // Pixel-based gap that grows with speed (matching Chrome's design).
+    // Avoids obstacles clustering at high speed — the original time-based
+    // gap shrank with speed, causing extremely dense spawning.
+    const minPx = 150 + this.speed * 10;
+    const maxPx = minPx * 1.5;
+    const px = minPx + Math.random() * (maxPx - minPx);
+    // Convert pixel distance to ms delay based on current speed.
+    // At 60fps: this.speed * 0.06 ≈ pixels-per-ms.
+    return px / (this.speed * 0.06);
   }
 
   private spawnObstacle(): void {

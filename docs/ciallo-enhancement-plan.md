@@ -263,31 +263,75 @@ gap = baseGap * (SPEED_START / speed) × 变速因子
 
 ### 2.5 跳跃手感
 
-**现状**（`ciallo-game.ts:117-122`）：
+**现状（优化前）**：
 
-```javascript
+- `JUMP_VEL=-12`，固定高度（~120px，~667ms），按多久跳一样高
+- 无可变高度（按住空格不改变重力）
+- 起跳无 squat 蓄力视觉反馈
+- `jump()` 方法直接设置 `pv = JUMP_VEL; jumping = true;`
+
+**完成项**：
+
+- [x] **Variable-height jump**：按住空格降低重力系数（`GRAVITY_HELD_FACTOR = 0.75`），松开恢复原重力 `GRAVITY`。通过 `spaceHeld` 状态在 `update()` 中条件判断，按住时下落更慢、跳得更高
+- [x] **Squat 动画（蓄力→弹起）**：跳跃前 50ms 恐龙下蹲 8px，第 50ms 后起跳。`jump()` 只设 `squatting = true`，`update()` 中倒计时结束后才设 `pv = JUMP_VEL; jumping = true`。绘制时 `drawY = py + SQUAT_SHIFT`（仅下蹲帧偏移）
+- [x] **事件响应改进**：`keydown` 设 `spaceHeld = true`，`keyup` 设 `false`，不与跳跃触发耦合。`jump()` 是单独的按键事件，`spaceHeld` 在物理更新中独立判断
+
+**实现**（`ciallo-game.ts`）：
+
+```typescript
+// 常量
+const GRAVITY = 0.6;
+const JUMP_VEL = -12;
+const GRAVITY_HELD_FACTOR = 0.75; // 按住空格时重力乘数（<1 → 滞空更久）
+const SQUAT_MS = 50;              // 蓄力持续时间
+const SQUAT_SHIFT = 8;            // 下蹲视觉偏移量
+
+// 跳跃入口（仅设 squat，不直接起跳）
 jump(): void {
-  if (this.phase === "playing" && !this.jumping) {
+  if (this.phase === "playing" && !this.jumping && !this.squatting) {
+    this.squatting = true;
+    this.squatTimer = SQUAT_MS;
+  }
+}
+
+// update() — squat → jump 过渡
+if (this.squatting) {
+  this.squatTimer -= dt;
+  if (this.squatTimer <= 0) {
+    this.squatting = false;
     this.pv = JUMP_VEL;
     this.jumping = true;
   }
 }
+
+// update() — 可变高度物理
+if (this.jumping) {
+  this.py += this.pv * t;
+  this.pv += (this.spaceHeld
+    ? GRAVITY * GRAVITY_HELD_FACTOR   // 按住 → 慢下落
+    : GRAVITY                          // 松开 → 正常下落
+  ) * t;
+  if (this.py >= GROUND_Y - SPR.TREX.h / 2) {
+    this.py = GROUND_Y - SPR.TREX.h / 2;
+    this.jumping = false;
+    this.pv = 0;
+  }
+}
+
+// 绘制 — squat 偏移
+const drawY = this.py + (this.squatting ? SQUAT_SHIFT : 0);
+ctx.drawImage(img, this.px, drawY, tw, th);
+
+// 事件绑定 — spaceHeld 独立于 jump() 触发
+this.spaceHeld = pressed;  // keydown→true, keyup→false
 ```
 
-- `JUMP_VEL=-12`，固定高度（~120px，~667ms）
-- 无可变高度
-- 无 squat 预备动画
+**相关文件**：
 
-**问题**：
-
-- 按多久跳一样高 → 手感僵硬
-- 起跳前无蓄力视觉反馈
-
-**修复**：
-
-1. **Variable-height jump**：按住空格降低重力系数（`GRAVITY * 0.5`），松开恢复原重力。记录 `spaceHeld` 状态，在 `update()` 中条件判断。
-
-2. **Squat 动画**：跳跃前一帧让恐龙下蹲（减少高度 ~8px），第 2 帧起跳。视觉上形成「蓄力→弹起」的节奏。
+| 文件                             | 作用                                                    |
+| -------------------------------- | ------------------------------------------------------- |
+| `src/scripts/ciallo-game.ts`     | `jump()`、squat→jump 过渡、可变高度物理、事件绑定、绘制 |
+| `src/pages/ciallo.astro`         | 无直接变更（游戏逻辑全部封装在 `ciallo-game.ts`）        |
 
 ## 三、优先顺序建议
 
@@ -295,7 +339,7 @@ jump(): void {
 | ------ | ---------------------------- | ------ | ------------------- | ------ |
 | P0     | 碰撞判定（子盒系统）         | 大     | 核心体验 bug        | 已完成 |
 | P0     | Canvas 精灵渲染 + 主题色适配 | 大     | 暗色模式 + 视觉效果 | 已完成 |
-| P1     | 跳跃手感（variable jump）    | 中     | 操作体验            | -      |
+| P1     | 跳跃手感（variable jump）    | 中     | 操作体验            | 已完成 |
 | P1     | 速度曲线 + 得分              | 中     | 游戏节奏            | -      |
 | P2     | 障碍物密度/高度              | 中     | 难度曲线            | -      |
 | P2     | 浮动文字颜色/字体            | 小     | 视觉效果            | 已完成 |
