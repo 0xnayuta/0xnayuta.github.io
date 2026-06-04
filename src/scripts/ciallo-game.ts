@@ -318,6 +318,7 @@ export class CialloGame {
   // ---- update ----
   private update(dt: number): void {
     this.runTime += dt;
+    const t = dt * 0.06;
 
     // squat → jump transition
     if (this.squatting) {
@@ -331,8 +332,8 @@ export class CialloGame {
 
     // player physics (variable-height: hold space to float longer)
     if (this.jumping) {
-      this.py += this.pv;
-      this.pv += this.spaceHeld ? GRAVITY * GRAVITY_HELD_FACTOR : GRAVITY;
+      this.py += this.pv * t;
+      this.pv += (this.spaceHeld ? GRAVITY * GRAVITY_HELD_FACTOR : GRAVITY) * t;
       if (this.py >= GROUND_Y - SPR.TREX.h / 2) {
         this.py = GROUND_Y - SPR.TREX.h / 2;
         this.jumping = false;
@@ -386,7 +387,16 @@ export class CialloGame {
                 : CACTUS_COLLISION.large;
           // Sub-boxes are relative to outer AABB top-left (sprite_pos + 1),
           // matching Chrome's createAdjustedCollisionBox(subBox, outerBox).
-          if (collides(this.px + 1, this.py + 1, dinoBoxes, o.x + 1, o.y + 1, obsBoxes)) {
+          if (
+            collides(
+              this.px + 1,
+              this.py + 1,
+              dinoBoxes,
+              o.x + 1,
+              o.y + 1,
+              obsBoxes,
+            )
+          ) {
             this.crash();
             return;
           }

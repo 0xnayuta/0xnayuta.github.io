@@ -123,12 +123,12 @@ private getTintedFrame(sx, sy, sw, sh, color): HTMLCanvasElement {
 
 **相关文件**：
 
-| 文件                         | 作用                                                                           |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、精灵加载与着色、6 组 draw 方法             |
-| `src/pages/ciallo.astro`     | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
-| `src/assets/images/sprite.png` | Chrome T-Rex Runner `200-offline-sprite.png`（BSD 许可）                       |
-| `docs/ciallo-visual-alignment-plan.md` | 完整精灵渲染方案设计文档                                           |
+| 文件                                   | 作用                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| `src/scripts/ciallo-game.ts`           | `GameColors` 接口、`DEFAULT_COLORS`、精灵加载与着色、6 组 draw 方法            |
+| `src/pages/ciallo.astro`               | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
+| `src/assets/images/sprite.png`         | Chrome T-Rex Runner `200-offline-sprite.png`（BSD 许可）                       |
+| `docs/ciallo-visual-alignment-plan.md` | 完整精灵渲染方案设计文档                                                       |
 
 ## 二、游戏机制优化
 
@@ -153,16 +153,22 @@ const q: Rect = { x: o.x + 2, y: o.y + 2, w: o.w - 4, h: o.h - 4 };
 
 ```typescript
 // 外层快速 AABB（每边 1px 内缩）
-const p: Rect = { x: this.px + 1, y: this.py + 1, w: SPR.TREX.w / 2 - 2, h: SPR.TREX.h / 2 - 2 };
+const p: Rect = {
+  x: this.px + 1,
+  y: this.py + 1,
+  w: SPR.TREX.w / 2 - 2,
+  h: SPR.TREX.h / 2 - 2,
+};
 const q: Rect = { x: o.x + 1, y: o.y + 1, w: o.w - 2, h: o.h - 2 };
 if (overlap(p, q)) {
   // 内层子盒逐对碰撞，相对外盒坐标计算
-  const dinoBoxes = DINO_COLLISION;          // CollisionBox[]
-  const obsBoxes = o.kind === "ptero"
-    ? PTERO_COLLISION
-    : CACTUS_COLLISION[o.size];              // 直接引用扁平数组
+  const dinoBoxes = DINO_COLLISION; // CollisionBox[]
+  const obsBoxes =
+    o.kind === "ptero" ? PTERO_COLLISION : CACTUS_COLLISION[o.size]; // 直接引用扁平数组
   // Sub-boxes 相对外盒 (sprite_pos + 1)，match Chrome's createAdjustedCollisionBox
-  if (collides(this.px + 1, this.py + 1, dinoBoxes, o.x + 1, o.y + 1, obsBoxes)) {
+  if (
+    collides(this.px + 1, this.py + 1, dinoBoxes, o.x + 1, o.y + 1, obsBoxes)
+  ) {
     this.crash();
     return;
   }
@@ -173,21 +179,21 @@ if (overlap(p, q)) {
 
 ```typescript
 const DINO_COLLISION: CollisionBox[] = [
-  { x: 22, y: 0, w: 17, h: 16 },   // 头
-  { x: 1, y: 18, w: 30, h: 9 },    // 上背
-  { x: 1, y: 24, w: 29, h: 5 },    // 中身
-  { x: 5, y: 30, w: 21, h: 4 },    // 下体
-  { x: 9, y: 34, w: 15, h: 4 },    // 脚
-  { x: 10, y: 35, w: 14, h: 8 },   // 腿
+  { x: 22, y: 0, w: 17, h: 16 }, // 头
+  { x: 1, y: 18, w: 30, h: 9 }, // 上背
+  { x: 1, y: 24, w: 29, h: 5 }, // 中身
+  { x: 5, y: 30, w: 21, h: 4 }, // 下体
+  { x: 9, y: 34, w: 15, h: 4 }, // 脚
+  { x: 10, y: 35, w: 14, h: 8 }, // 腿
 ];
 ```
 
 **相关文件**：
 
-| 文件                         | 作用               |
-| ---------------------------- | ------------------ |
-| `src/scripts/ciallo-game.ts` | 两阶段碰撞检测 + 子盒定义 |
-| `docs/ciallo-visual-alignment-plan.md` | 子盒来源与坐标系换算说明 |
+| 文件                                   | 作用                      |
+| -------------------------------------- | ------------------------- |
+| `src/scripts/ciallo-game.ts`           | 两阶段碰撞检测 + 子盒定义 |
+| `docs/ciallo-visual-alignment-plan.md` | 子盒来源与坐标系换算说明  |
 
 ### 2.2 速度曲线
 
@@ -285,11 +291,11 @@ jump(): void {
 
 ## 三、优先顺序建议
 
-| 优先级 | 模块                          | 工作量 | 影响           | 状态     |
-| ------ | ----------------------------- | ------ | -------------- | -------- |
-| P0     | 碰撞判定（子盒系统）          | 大     | 核心体验 bug   | 已完成   |
-| P0     | Canvas 精灵渲染 + 主题色适配  | 大     | 暗色模式 + 视觉效果 | 已完成 |
-| P1     | 跳跃手感（variable jump）     | 中     | 操作体验       | -        |
-| P1     | 速度曲线 + 得分               | 中     | 游戏节奏       | -        |
-| P2     | 障碍物密度/高度               | 中     | 难度曲线       | -        |
-| P2     | 浮动文字颜色/字体             | 小     | 视觉效果       | 已完成   |
+| 优先级 | 模块                         | 工作量 | 影响                | 状态   |
+| ------ | ---------------------------- | ------ | ------------------- | ------ |
+| P0     | 碰撞判定（子盒系统）         | 大     | 核心体验 bug        | 已完成 |
+| P0     | Canvas 精灵渲染 + 主题色适配 | 大     | 暗色模式 + 视觉效果 | 已完成 |
+| P1     | 跳跃手感（variable jump）    | 中     | 操作体验            | -      |
+| P1     | 速度曲线 + 得分              | 中     | 游戏节奏            | -      |
+| P2     | 障碍物密度/高度              | 中     | 难度曲线            | -      |
+| P2     | 浮动文字颜色/字体            | 小     | 视觉效果            | 已完成 |
