@@ -105,40 +105,42 @@ ctx.clearRect(0, 0, W, H);
 
 **相关文件**：
 
-| 文件 | 作用 |
-| --- | --- |
-| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、类注入 `colors`、7 处颜色替换 |
-| `src/pages/ciallo.astro` | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
+| 文件                         | 作用                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、类注入 `colors`、7 处颜色替换             |
+| `src/pages/ciallo.astro`     | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
 
 ## 二、游戏机制优化
 
-### 2.1 碰撞判定修复
+### 2.1 碰撞判定修复（`ciallo-game.ts`）
 
-**现状**（`ciallo-game.ts:206-219`）：
+**现状（优化前）**：
 
-```javascript
+```typescript
 const p: Rect = { x: this.px + 4, y: this.py + 4, w: 36, h: 36 };
 const q: Rect = { x: o.x + 2, y: o.y + 2, w: o.w - 4, h: o.h - 4 };
 ```
 
-**问题**：
-| 维度 | 碰撞盒 vs 视觉 | 偏差 |
-|---|---|---|
-| 恐龙上边 | py+4 vs py+1 | 碰撞盒下沉 3px |
-| 恐龙下边 | py+40 vs py+42 | 碰撞盒缺底 2px |
-| 仙人掌上边 | oy+2 vs oy+1.5 | 碰撞盒下沉 ~0.5px |
-| 仙人掌下边 | oy+33 vs oy+35 | 碰撞盒缺底 2px |
+恐龙碰撞盒相对视觉边界各有 3–4px 内缩；仙人掌各边 0.5–2px 内缩。上下合计约 5px 的死角 → "碰到但未结束"。
 
-**后果**：视觉上恐龙已接触仙人掌时，碰撞盒在上下各有约 5px 的死角。用户观察到"碰到但未结束"。
+**完成项**：
 
-**修复**：将 padding 缩小或去除，使碰撞盒紧密包裹视觉边界：
+- [x] **零 padding AABB**：恐龙碰撞盒改为 `(px, py, 38, 44)`，仙人掌改为 `(ox, oy, ow, oh)`。删除所有人为 padding，使碰撞盒紧密包裹视觉最外沿
 
-```javascript
+**实现**（`ciallo-game.ts:224-230`）：
+
+```typescript
 const p: Rect = { x: this.px, y: this.py, w: 38, h: 44 };
 const q: Rect = { x: o.x, y: o.y, w: o.w, h: o.h };
 ```
 
-或根据视觉实际边界精确调整。
+恐龙 38×44 覆盖视觉范围（尾 `px` 到头 `px+37`，头顶 `py+1` 到腿底 `py+42`），每边保留 1–2px 余量。仙人掌直接用 sprite 定义尺寸（小 17×35、大 25×50），尖刺已含在 `ow`/`oh` 内。
+
+**相关文件**：
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/scripts/ciallo-game.ts` | 两处碰撞盒常量调整 |
 
 ### 2.2 速度曲线
 
@@ -238,8 +240,8 @@ jump(): void {
 
 | 优先级 | 模块                      | 工作量 | 影响           | 状态   |
 | ------ | ------------------------- | ------ | -------------- | ------ |
-| P0     | 碰撞判定修复              | 小     | 核心体验 bug   | -      |
-| P0     | Canvas 颜色适配           | 中     | 暗色模式可读性 | -      |
+| P0     | 碰撞判定修复              | 小     | 核心体验 bug   | 已完成 |
+| P0     | Canvas 颜色适配           | 中     | 暗色模式可读性 | 已完成 |
 | P1     | 跳跃手感（variable jump） | 中     | 操作体验       | -      |
 | P1     | 速度曲线 + 得分           | 中     | 游戏节奏       | -      |
 | P2     | 障碍物密度/高度           | 中     | 难度曲线       | -      |

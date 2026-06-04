@@ -222,12 +222,12 @@ export class CialloGame {
       if (this.obstacles[0]) {
         const o = this.obstacles[0];
         const p: Rect = {
-          x: this.px + 4,
-          y: this.py + 4,
-          w: 36,
-          h: 36,
+          x: this.px,
+          y: this.py,
+          w: 38,
+          h: 44,
         };
-        const q: Rect = { x: o.x + 2, y: o.y + 2, w: o.w - 4, h: o.h - 4 };
+        const q: Rect = { x: o.x, y: o.y, w: o.w, h: o.h };
         if (overlap(p, q)) {
           this.crash();
           return;
