@@ -69,39 +69,46 @@ export function spawnFloatingCiallo(x?: number, y?: number): void {
 
 ### 1.2 Canvas 背景与绘制颜色（`ciallo-game.ts`）
 
-**现状**：
+**现状（优化前）**：
 
 - 背景 `#f7f7f7` 硬编码
 - 恐龙、仙人掌、地面、云朵全部 `#535353` 硬编码
 - 不感知任何主题
 
-**目标**：
+**完成项**：
 
-- 画布背景应为一条色带，适配暗黑/明亮模式：暗色 → 半透明暗底，亮色 → 半透明浅底
-- 移动中的对象（恐龙、仙人掌、云朵、地面标记）在暗色模式下偏白/亮，亮色模式下偏黑/暗
-- 非移动的静态元素（画布底色）保持低调，仅作背景容器
+- [x] **画布底色透明化**：删除 `fillRect` 硬编码背景填充，仅保留 `clearRect`。Canvas 完全透明，页面 `--background` 直接透出，不再突兀白色条带
+- [x] **移动对象颜色注入**：导出 `GameColors` 接口（`fg`/`belly`/`cloud`/`ground`），构造函数接受 `colors?: GameColors`，调用方按 `data-theme` 传入对应色板
 
-**方案**：
+**实现**（`ciallo-game.ts`）：
 
-通过 `getComputedStyle(document.documentElement).getPropertyValue('--foreground')` 等 CSS 变量实时读取主题色，或构造函数接收颜色配置对象。
-
-```
-// 色彩映射示例
-light: {
-  bg:        "#f7f7f7",       // 画布背景（浅白）
-  fg:        "#535353",       // 移动对象（暗灰）
-  cloud:     "#d0d0d0",
-  ground:    "#535353",
+```typescript
+export interface GameColors {
+  fg: string;
+  belly: string;
+  cloud: string;
+  ground: string;
 }
-dark: {
-  bg:        "#2a3045",       // 画布背景（深蓝灰）
-  fg:        "#d0d4dc",       // 移动对象（亮灰白）
-  cloud:     "#4a5070",
-  ground:    "#d0d4dc",
+
+// 类内部
+private colors: GameColors;
+
+constructor(root: HTMLElement, colors?: GameColors) {
+  this.colors = colors ?? DEFAULT_COLORS;
+  // ...
 }
+
+// draw() 中仅 clearRect，无 fillRect 背景
+ctx.clearRect(0, 0, W, H);
+// 各对象颜色替换为 this.colors.*
 ```
 
-实现上：去掉 `clearRect` 硬编码背景填充，让 canvas CSS background 显示。移动对象通过 `setColors()` 方法或构造函数配置。
+**相关文件**：
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、类注入 `colors`、7 处颜色替换 |
+| `src/pages/ciallo.astro` | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
 
 ## 二、游戏机制优化
 

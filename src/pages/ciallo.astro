@@ -43,11 +43,28 @@ import CialloGameWrapper from "@/components/ciallo/CialloGameWrapper.astro";
 </style>
 
 <script>
-  import { CialloGame } from "@/scripts/ciallo-game";
+import { CialloGame, type GameColors } from "@/scripts/ciallo-game";
   import { spawnFloatingCiallo } from "@/components/ciallo/ciallo-effects";
 
-  const game = new CialloGame(document.getElementById("gameContainer")!);
+const LIGHT_COLORS: GameColors = {
+  fg: "#535353",
+  belly: "#7a7a7a",
+  cloud: "#d0d0d0",
+  ground: "#535353",
+};
+const DARK_COLORS: GameColors = {
+  fg: "#d0d4dc",
+  belly: "#9ca3af",
+  cloud: "#4a5070",
+  ground: "#d0d4dc",
+};
+function currentThemeColors(): GameColors {
+  return document.documentElement.getAttribute("data-theme") === "dark"
+    ? DARK_COLORS
+    : LIGHT_COLORS;
+}
 
+const game = new CialloGame(document.getElementById("gameContainer")!, currentThemeColors());
   const scoreEl = document.getElementById("scoreVal")!;
   const hiScoreEl = document.getElementById("hiScoreVal")!;
   const msgOverlay = document.getElementById("msgOverlay")!;

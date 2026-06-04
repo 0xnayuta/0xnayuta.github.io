@@ -32,12 +32,27 @@ function overlap(a: Rect, b: Rect): boolean {
     a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
   );
 }
+// ---- color theme ----
+export interface GameColors {
+  fg: string;
+  belly: string;
+  cloud: string;
+  ground: string;
+}
+
+const DEFAULT_COLORS: GameColors = {
+  fg: "#535353",
+  belly: "#7a7a7a",
+  cloud: "#d0d0d0",
+  ground: "#535353",
+};
 
 // ---- main game class ----
 export class CialloGame {
   private cvs: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private raqId = 0;
+  private colors: GameColors;
   private phase: Phase = "waiting";
 
   // player
@@ -72,13 +87,14 @@ export class CialloGame {
   onHighScore?: (s: number) => void;
   onGameOver?: () => void;
 
-  constructor(root: HTMLElement) {
+  constructor(root: HTMLElement, colors?: GameColors) {
     this.cvs = document.createElement("canvas");
     this.cvs.width = W;
     this.cvs.height = H;
     this.cvs.className = "runner-canvas";
     root.appendChild(this.cvs);
     this.ctx = this.cvs.getContext("2d")!;
+    this.colors = colors ?? DEFAULT_COLORS;
 
     this.py = GROUND_Y - 44;
     this.spawnCloud();
@@ -305,18 +321,16 @@ export class CialloGame {
     ctx.clearRect(0, 0, W, H);
 
     // sky
-    ctx.fillStyle = "#f7f7f7";
-    ctx.fillRect(0, 0, W, H);
 
     // clouds
     for (const c of this.clouds) {
-      ctx.fillStyle = "#d0d0d0";
+      ctx.fillStyle = this.colors.cloud;
       this.roundRect(c.x, c.y, c.w, 12, 6);
       ctx.fill();
     }
 
     // ground
-    ctx.strokeStyle = "#535353";
+    ctx.strokeStyle = this.colors.ground;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, GROUND_Y);
@@ -324,7 +338,7 @@ export class CialloGame {
     ctx.stroke();
 
     // ground bumps
-    ctx.fillStyle = "#535353";
+    ctx.fillStyle = this.colors.ground;
     for (let gx = -this.groundX; gx < W; gx += 20) {
       ctx.fillRect(gx, GROUND_Y + 3, 4, 4);
     }
@@ -349,7 +363,7 @@ export class CialloGame {
     ctx.translate(x, y);
 
     // body
-    ctx.fillStyle = "#535353";
+    ctx.fillStyle = this.colors.fg;
     ctx.beginPath();
     ctx.ellipse(18, 22, 16, 18, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -408,7 +422,7 @@ export class CialloGame {
 
     // legs
     if (!crashed || this.jumping) {
-      ctx.fillStyle = "#535353";
+      ctx.fillStyle = this.colors.fg;
       const legLen = crashed ? 0 : this.jumping ? 8 : 6;
       // left leg
       const lOff = this.dinoFrame ? 2 : -2;
@@ -417,12 +431,12 @@ export class CialloGame {
     }
 
     // arms (tiny trex arms)
-    ctx.fillStyle = "#535353";
+    ctx.fillStyle = this.colors.fg;
     ctx.fillRect(14, 24, 4, 6);
     ctx.fillRect(22, 24, 4, 6);
 
     // belly highlight
-    ctx.fillStyle = "#7a7a7a";
+    ctx.fillStyle = this.colors.belly;
     ctx.beginPath();
     ctx.ellipse(18, 26, 9, 12, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -432,7 +446,7 @@ export class CialloGame {
 
   // ---- draw: cactus ----
   private drawCactus(ctx: CanvasRenderingContext2D, o: Cactus): void {
-    ctx.fillStyle = "#535353";
+    ctx.fillStyle = this.colors.fg;
     // trunk
     ctx.fillRect(o.x + 4, o.y + 6, o.w - 8, o.h - 6);
     // top
