@@ -67,10 +67,11 @@ export function spawnFloatingCiallo(x?: number, y?: number): void {
 | `src/assets/fonts/ciallo-qingke.ttf`            | ZCOOL QingKe HuangYou 子集版（6.6KB，独立 hashed 文件） |
 | `scripts/subset-fonts.js`                       | 字体子集化（仅保留 `Ciallo～(< )⌒` 所需字符）           |
 
-### 1.2 Canvas 背景与绘制颜色（`ciallo-game.ts`）
+### 1.2 Canvas 绘制渲染（`ciallo-game.ts`）
 
 **现状（优化前）**：
 
+- 几何绘图（`fillRect`/`roundRect` 绘制恐龙、仙人掌、云朵、地面）
 - 背景 `#f7f7f7` 硬编码
 - 恐龙、仙人掌、地面、云朵全部 `#535353` 硬编码
 - 不感知任何主题
@@ -78,41 +79,60 @@ export function spawnFloatingCiallo(x?: number, y?: number): void {
 **完成项**：
 
 - [x] **画布底色透明化**：删除 `fillRect` 硬编码背景填充，仅保留 `clearRect`。Canvas 完全透明，页面 `--background` 直接透出，不再突兀白色条带
-- [x] **移动对象颜色注入**：导出 `GameColors` 接口（`fg`/`belly`/`cloud`/`ground`），构造函数接受 `colors?: GameColors`，调用方按 `data-theme` 传入对应色板
+- [x] **Chrome T-Rex Runner 精灵图渲染**：使用 Chromium BSD 许可的 `200-offline-sprite.png` 替代全部几何绘图。导入方式：`import spriteUrl from "../assets/images/sprite.png"`。所有精灵定义使用 HDPI 2x 坐标，绘制时除以 2 映射到 1x 逻辑画布
+- [x] **主题色合成**：通过 `getImageData` 移除白底 + `globalCompositeOperation: "source-atop"` 着色，`tintCache` 缓存已着色帧。着色仅影响非透明像素，保留精灵原生的明暗对比
+- [x] **精灵动画帧**：恐龙 6 组帧（等待/奔跑×2/跳跃/碰撞/眨眼），翼龙 2 帧，云朵/地面/仙人掌静态单帧
 
 **实现**（`ciallo-game.ts`）：
 
 ```typescript
-export interface GameColors {
-  fg: string;
-  belly: string;
-  cloud: string;
-  ground: string;
+// 精灵加载
+import spriteUrl from "../assets/images/sprite.png";
+
+private tintCache = new Map<string, HTMLCanvasElement>();
+private spriteLoaded = false;
+
+// 主题色合成：移除白底 → source-atop 染色 → 缓存
+private getTintedFrame(sx, sy, sw, sh, color): HTMLCanvasElement {
+  const key = `${sx},${sy},${sw},${sh},${color}`;
+  const cached = this.tintCache.get(key);
+  if (cached) return cached;
+  const c = document.createElement("canvas");
+  c.width = sw; c.height = sh;
+  const cx = c.getContext("2d")!;
+  // 1. 绘制原图 → 2. 移除白底 → 3. source-atop 着色
+  cx.drawImage(this.sprite, sx, sy, sw, sh, 0, 0, sw, sh);
+  const d = cx.getImageData(0, 0, sw, sh).data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] > 240 && d[i+1] > 240 && d[i+2] > 240) d[i+3] = 0;
+  }
+  cx.putImageData(imgData, 0, 0);
+  cx.globalCompositeOperation = "source-atop";
+  cx.fillStyle = color;
+  cx.fillRect(0, 0, sw, sh);
+  this.tintCache.set(key, c);
+  return c;
 }
-
-// 类内部
-private colors: GameColors;
-
-constructor(root: HTMLElement, colors?: GameColors) {
-  this.colors = colors ?? DEFAULT_COLORS;
-  // ...
-}
-
-// draw() 中仅 clearRect，无 fillRect 背景
-ctx.clearRect(0, 0, W, H);
-// 各对象颜色替换为 this.colors.*
 ```
+
+**新增内容**：
+
+- 翼龙（Pterodactyl）障碍物类型：速度 ≥ 8.5 时 30% 概率出现，3 个高度层（100/75/50），2 帧动画
+- 地面滚动：双段 600px 地平线精灵滚动，替代 `line`+`fillRect` 点状地面
+- 云朵：精灵图替代 `roundRect`
 
 **相关文件**：
 
 | 文件                         | 作用                                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------ |
-| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、类注入 `colors`、7 处颜色替换             |
+| `src/scripts/ciallo-game.ts` | `GameColors` 接口、`DEFAULT_COLORS`、精灵加载与着色、6 组 draw 方法             |
 | `src/pages/ciallo.astro`     | 定义 `LIGHT_COLORS` / `DARK_COLORS` + `currentThemeColors()`；实例化时传入配色 |
+| `src/assets/images/sprite.png` | Chrome T-Rex Runner `200-offline-sprite.png`（BSD 许可）                       |
+| `docs/ciallo-visual-alignment-plan.md` | 完整精灵渲染方案设计文档                                           |
 
 ## 二、游戏机制优化
 
-### 2.1 碰撞判定修复（`ciallo-game.ts`）
+### 2.1 碰撞判定（`ciallo-game.ts`）
 
 **现状（优化前）**：
 
@@ -121,26 +141,53 @@ const p: Rect = { x: this.px + 4, y: this.py + 4, w: 36, h: 36 };
 const q: Rect = { x: o.x + 2, y: o.y + 2, w: o.w - 4, h: o.h - 4 };
 ```
 
-恐龙碰撞盒相对视觉边界各有 3–4px 内缩；仙人掌各边 0.5–2px 内缩。上下合计约 5px 的死角 → "碰到但未结束"。
+单层 AABB 碰撞盒，恐龙各边 3–4px 内缩、仙人掌各边 0.5–2px 内缩。上下合计约 5px 的死角 → "碰到但未结束"。
 
 **完成项**：
 
-- [x] **零 padding AABB**：恐龙碰撞盒改为 `(px, py, 38, 44)`，仙人掌改为 `(ox, oy, ow, oh)`。删除所有人为 padding，使碰撞盒紧密包裹视觉最外沿
+- [x] **两层碰撞检测**：外圈 1px 内缩 AABB（快速滤除远处障碍）→ 内层子盒逐对检测（精准判定）。恐龙 6 子盒（头/上背/中身/下体/脚/腿），仙人掌 3 子盒（小/大各一套），翼龙 5 子盒
+- [x] **子盒定义**：从 Chrome T-Rex Runner 坐标系换算（HDPI 坐标 ÷ 2），紧密包裹各部位轮廓
+- [x] **CollisionBox 扁平化**：`CACTUS_COLLISION` 以 `Record<string, CollisionBox[]>` 按尺寸分类，无需 `.flat()` 或运行时推断
 
-**实现**（`ciallo-game.ts:224-230`）：
+**实现**（`ciallo-game.ts`）：
 
 ```typescript
-const p: Rect = { x: this.px, y: this.py, w: 38, h: 44 };
-const q: Rect = { x: o.x, y: o.y, w: o.w, h: o.h };
+// 外层快速 AABB（每边 1px 内缩）
+const p: Rect = { x: this.px + 1, y: this.py + 1, w: SPR.TREX.w / 2 - 2, h: SPR.TREX.h / 2 - 2 };
+const q: Rect = { x: o.x + 1, y: o.y + 1, w: o.w - 2, h: o.h - 2 };
+if (overlap(p, q)) {
+  // 内层子盒逐对碰撞，相对外盒坐标计算
+  const dinoBoxes = DINO_COLLISION;          // CollisionBox[]
+  const obsBoxes = o.kind === "ptero"
+    ? PTERO_COLLISION
+    : CACTUS_COLLISION[o.size];              // 直接引用扁平数组
+  // Sub-boxes 相对外盒 (sprite_pos + 1)，match Chrome's createAdjustedCollisionBox
+  if (collides(this.px + 1, this.py + 1, dinoBoxes, o.x + 1, o.y + 1, obsBoxes)) {
+    this.crash();
+    return;
+  }
+}
 ```
 
-恐龙 38×44 覆盖视觉范围（尾 `px` 到头 `px+37`，头顶 `py+1` 到腿底 `py+42`），每边保留 1–2px 余量。仙人掌直接用 sprite 定义尺寸（小 17×35、大 25×50），尖刺已含在 `ow`/`oh` 内。
+**子盒定义**（1x 逻辑坐标，相对于精灵左上角）：
+
+```typescript
+const DINO_COLLISION: CollisionBox[] = [
+  { x: 22, y: 0, w: 17, h: 16 },   // 头
+  { x: 1, y: 18, w: 30, h: 9 },    // 上背
+  { x: 1, y: 24, w: 29, h: 5 },    // 中身
+  { x: 5, y: 30, w: 21, h: 4 },    // 下体
+  { x: 9, y: 34, w: 15, h: 4 },    // 脚
+  { x: 10, y: 35, w: 14, h: 8 },   // 腿
+];
+```
 
 **相关文件**：
 
-| 文件 | 作用 |
-| --- | --- |
-| `src/scripts/ciallo-game.ts` | 两处碰撞盒常量调整 |
+| 文件                         | 作用               |
+| ---------------------------- | ------------------ |
+| `src/scripts/ciallo-game.ts` | 两阶段碰撞检测 + 子盒定义 |
+| `docs/ciallo-visual-alignment-plan.md` | 子盒来源与坐标系换算说明 |
 
 ### 2.2 速度曲线
 
@@ -238,11 +285,11 @@ jump(): void {
 
 ## 三、优先顺序建议
 
-| 优先级 | 模块                      | 工作量 | 影响           | 状态   |
-| ------ | ------------------------- | ------ | -------------- | ------ |
-| P0     | 碰撞判定修复              | 小     | 核心体验 bug   | 已完成 |
-| P0     | Canvas 颜色适配           | 中     | 暗色模式可读性 | 已完成 |
-| P1     | 跳跃手感（variable jump） | 中     | 操作体验       | -      |
-| P1     | 速度曲线 + 得分           | 中     | 游戏节奏       | -      |
-| P2     | 障碍物密度/高度           | 中     | 难度曲线       | -      |
-| P2     | 浮动文字颜色/字体         | 小     | 视觉效果       | 已完成 |
+| 优先级 | 模块                          | 工作量 | 影响           | 状态     |
+| ------ | ----------------------------- | ------ | -------------- | -------- |
+| P0     | 碰撞判定（子盒系统）          | 大     | 核心体验 bug   | 已完成   |
+| P0     | Canvas 精灵渲染 + 主题色适配  | 大     | 暗色模式 + 视觉效果 | 已完成 |
+| P1     | 跳跃手感（variable jump）     | 中     | 操作体验       | -        |
+| P1     | 速度曲线 + 得分               | 中     | 游戏节奏       | -        |
+| P2     | 障碍物密度/高度               | 中     | 难度曲线       | -        |
+| P2     | 浮动文字颜色/字体             | 小     | 视觉效果       | 已完成   |

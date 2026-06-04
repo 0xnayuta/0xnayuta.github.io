@@ -1,14 +1,19 @@
-// Self-contained Canvas dino-runner game.
-// Zero external dependencies — no sprites, no audio blobs.
+// Canvas dino-runner game rendering with Chrome T-Rex Runner sprite sheet.
+// Sprite: Chromium BSD licensed (200-offline-sprite.png)
+
+import spriteUrl from "../assets/images/sprite.png";
 
 const W = 600,
-  H = 150;
-const GROUND_Y = 127;
+  H = 200;
+const GROUND_Y = 177;
 const DINO_X = 50;
 
 // physics
 const GRAVITY = 0.6;
 const JUMP_VEL = -12;
+const GRAVITY_HELD_FACTOR = 0.75;
+const SQUAT_MS = 50;
+const SQUAT_SHIFT = 8;
 const SPEED_START = 6;
 const SPEED_MAX = 13;
 const ACCEL = 0.001;
@@ -23,15 +28,48 @@ interface Rect {
   h: number;
 }
 
+interface CollisionBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 // ---- helpers ----
 function rand(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
 function overlap(a: Rect, b: Rect): boolean {
   return (
     a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
   );
 }
+
+/** Check if any pair of sub-boxes (relative to sprite pos) overlap */
+function collides(
+  px: number,
+  py: number,
+  dBoxes: CollisionBox[],
+  ox: number,
+  oy: number,
+  oBoxes: CollisionBox[],
+): boolean {
+  for (const d of dBoxes) {
+    for (const o of oBoxes) {
+      if (
+        px + d.x < ox + o.x + o.w &&
+        px + d.x + d.w > ox + o.x &&
+        py + d.y < oy + o.y + o.h &&
+        py + d.y + d.h > oy + o.y
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // ---- color theme ----
 export interface GameColors {
   fg: string;
@@ -47,12 +85,90 @@ const DEFAULT_COLORS: GameColors = {
   ground: "#535353",
 };
 
-// ---- main game class ----
+// ---- obstacle types ----
+interface Obstacle {
+  kind: "cactus";
+  size: "small" | "large";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface Ptero {
+  kind: "ptero";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  frame: number;
+  frameAcc: number;
+}
+
+interface Cloud {
+  x: number;
+  y: number;
+  w: number;
+  speed: number;
+}
+
+// ---- sprite definitions (2x / HDPI coords - from Chrome HDPI spriteDef) ----
+const SPR = {
+  TREX: { x: 1678, y: 2, w: 88, h: 94 },
+  CACTUS_SMALL: { x: 446, y: 2, w: 34, h: 70 },
+  CACTUS_LARGE: { x: 652, y: 2, w: 50, h: 100 },
+  CLOUD: { x: 166, y: 2, w: 92, h: 28 },
+  PTERODACTYL: { x: 260, y: 2, w: 92, h: 80 },
+  HORIZON: { x: 2, y: 104, w: 1200, h: 24 },
+};
+
+const DINO_FRAMES: Record<string, { frames: number[]; ms: number }> = {
+  wait: { frames: [44, 0], ms: 1000 / 3 },
+  run: { frames: [88, 132], ms: 1000 / 12 },
+  crash: { frames: [220], ms: 1000 / 60 },
+  jump: { frames: [0], ms: 1000 / 60 },
+  duck: { frames: [264, 323], ms: 1000 / 8 },
+};
+
+// collision sub-boxes (1x logical, relative to sprite top-left)
+const DINO_COLLISION: CollisionBox[] = [
+  { x: 22, y: 0, w: 17, h: 16 }, // head
+  { x: 1, y: 18, w: 30, h: 9 }, // upper back
+  { x: 1, y: 24, w: 29, h: 5 }, // mid body
+  { x: 5, y: 30, w: 21, h: 4 }, // lower body
+  { x: 9, y: 34, w: 15, h: 4 }, // foot
+  { x: 10, y: 35, w: 14, h: 8 }, // leg
+];
+
+const CACTUS_COLLISION: Record<string, CollisionBox[]> = {
+  small: [
+    { x: 0, y: 7, w: 5, h: 27 },
+    { x: 4, y: 0, w: 6, h: 34 },
+    { x: 10, y: 4, w: 7, h: 14 },
+  ],
+  large: [
+    { x: 0, y: 12, w: 7, h: 38 },
+    { x: 8, y: 0, w: 7, h: 49 },
+    { x: 13, y: 10, w: 10, h: 38 },
+  ],
+};
+
+const PTERO_COLLISION: CollisionBox[] = [
+  { x: 15, y: 15, w: 16, h: 5 },
+  { x: 18, y: 21, w: 24, h: 6 },
+  { x: 2, y: 14, w: 4, h: 3 },
+  { x: 6, y: 10, w: 4, h: 7 },
+  { x: 10, y: 8, w: 6, h: 9 },
+];
+
 export class CialloGame {
   private cvs: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private raqId = 0;
   private colors: GameColors;
+  private sprite: HTMLImageElement;
+  private tintCache = new Map<string, HTMLCanvasElement>();
+  private spriteLoaded = false;
   private phase: Phase = "waiting";
 
   // player
@@ -60,8 +176,9 @@ export class CialloGame {
   private py = 0;
   private pv = 0;
   private jumping = false;
-  private blinkTimer = 0;
-  private blinkState = false;
+  private spaceHeld = false;
+  private squatting = false;
+  private squatTimer = 0;
 
   // world
   private speed = SPEED_START;
@@ -71,16 +188,19 @@ export class CialloGame {
   private groundX = 0;
 
   // obstacles
-  private obstacles: Cactus[] = [];
+  private obstacles: (Obstacle | Ptero)[] = [];
   private obsTimer = 0;
   private lastTypes: string[] = [];
 
   // clouds
-  private clouds: Cloud_[] = [];
+  private clouds: Cloud[] = [];
 
   // frames
-  private dinoFrame = 0; // 0|1 leg position
+  private dinoFrame = 0;
   private frameAcc = 0;
+
+  // tick state
+  private lastTick = 0;
 
   // callbacks
   onScore?: (s: number) => void;
@@ -96,7 +216,13 @@ export class CialloGame {
     this.ctx = this.cvs.getContext("2d")!;
     this.colors = colors ?? DEFAULT_COLORS;
 
-    this.py = GROUND_Y - 44;
+    this.sprite = new Image();
+    this.sprite.onload = () => {
+      this.spriteLoaded = true;
+    };
+    this.sprite.src = spriteUrl.src;
+
+    this.py = GROUND_Y - SPR.TREX.h / 2;
     this.spawnCloud();
     this.listen();
     this.tick(0);
@@ -110,6 +236,7 @@ export class CialloGame {
       this.jumping = true;
     }
   }
+
   restart(): void {
     if (this.phase !== "crashed") return;
     this.phase = "playing";
@@ -119,25 +246,23 @@ export class CialloGame {
     this.speed = SPEED_START;
     this.runTime = 0;
     this.px = DINO_X;
-    this.py = GROUND_Y - 44;
+    this.py = GROUND_Y - SPR.TREX.h / 2;
     this.pv = 0;
     this.jumping = false;
     this.dinoFrame = 0;
+    this.spaceHeld = false;
+    this.squatting = false;
+    this.squatTimer = 0;
     this.frameAcc = 0;
     this.obsTimer = 0;
     this.lastTypes = [];
-    this.blinkTimer = 0;
   }
 
-  // ---- input ----
   jump(): void {
-    if (this.phase === "playing" && !this.jumping) {
-      this.pv = JUMP_VEL;
-      this.jumping = true;
+    if (this.phase === "playing" && !this.jumping && !this.squatting) {
+      this.squatting = true;
+      this.squatTimer = SQUAT_MS;
     }
-  }
-  duck(): void {
-    // stub — duck not implemented
   }
 
   // ---- lifecycle ----
@@ -147,52 +272,69 @@ export class CialloGame {
 
   // ---- event binding ----
   private listen(): void {
-    document.addEventListener("keydown", (e) => {
+    const handler = (e: KeyboardEvent, pressed: boolean): void => {
       if (e.key === " " || e.key === "ArrowUp") {
-        if (this.phase === "crashed") {
-          this.restart();
-        } else if (this.phase === "waiting") {
-          this.start();
-        } else {
-          this.jump();
+        this.spaceHeld = pressed;
+        if (pressed) {
+          if (this.phase === "crashed") {
+            this.restart();
+          } else if (this.phase === "waiting") {
+            this.start();
+          } else {
+            this.jump();
+          }
         }
         e.preventDefault();
       }
-      if (e.key === "ArrowDown" && this.phase === "playing") {
-        this.duck();
-        e.preventDefault();
-      }
-    });
-    document.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowDown") this.duck();
-    });
+    };
+    document.addEventListener("keydown", (e) => handler(e, true));
+    document.addEventListener("keyup", (e) => handler(e, false));
   }
 
   // ---- game loop ----
   private tick = (now: number): void => {
-    const dt = Math.min(now - (this._last ?? now), 50); // cap at 50ms
-    this._last = now;
+    const dt = Math.min(now - (this.lastTick ?? now), 50);
+    this.lastTick = now;
 
     if (this.phase === "playing") {
       this.update(dt);
-    } else if (this.phase === "waiting") {
-      this.updateBlink(dt);
     }
+
+    // dino frame animation (playing + waiting)
+    if (this.phase !== "crashed") {
+      const animMs =
+        this.phase === "waiting" ? DINO_FRAMES.wait.ms : DINO_FRAMES.run.ms;
+      this.frameAcc += dt;
+      while (this.frameAcc >= animMs && animMs > 0) {
+        this.frameAcc -= animMs;
+        this.dinoFrame = (this.dinoFrame + 1) % DINO_FRAMES.run.frames.length;
+      }
+    }
+
     this.draw();
     this.raqId = requestAnimationFrame(this.tick);
   };
-  private _last = 0;
 
   // ---- update ----
   private update(dt: number): void {
     this.runTime += dt;
 
-    // player physics
+    // squat → jump transition
+    if (this.squatting) {
+      this.squatTimer -= dt;
+      if (this.squatTimer <= 0) {
+        this.squatting = false;
+        this.pv = JUMP_VEL;
+        this.jumping = true;
+      }
+    }
+
+    // player physics (variable-height: hold space to float longer)
     if (this.jumping) {
       this.py += this.pv;
-      this.pv += GRAVITY;
-      if (this.py >= GROUND_Y - 44) {
-        this.py = GROUND_Y - 44;
+      this.pv += this.spaceHeld ? GRAVITY * GRAVITY_HELD_FACTOR : GRAVITY;
+      if (this.py >= GROUND_Y - SPR.TREX.h / 2) {
+        this.py = GROUND_Y - SPR.TREX.h / 2;
         this.jumping = false;
         this.pv = 0;
       }
@@ -202,7 +344,8 @@ export class CialloGame {
     if (this.speed < SPEED_MAX) this.speed += ACCEL * dt;
 
     // ground scroll
-    this.groundX = (this.groundX + this.speed * dt * 0.06) % 20;
+    this.groundX =
+      (this.groundX + this.speed * dt * 0.06) % (SPR.HORIZON.w / 2);
 
     // obstacles
     const hasObs = this.runTime > CLEAR_TIME;
@@ -211,26 +354,53 @@ export class CialloGame {
       const minGap = this.calcGap();
       if (this.obsTimer >= minGap) {
         this.obsTimer = 0;
-        this.spawnCactus();
+        this.spawnObstacle();
       }
       for (const o of this.obstacles) {
         o.x -= this.speed * dt * 0.06;
       }
       this.obstacles = this.obstacles.filter((o) => o.x + o.w > -50);
 
-      // collision
+      // collision — two-layer: AABB outer → sub-box inner
       if (this.obstacles[0]) {
         const o = this.obstacles[0];
         const p: Rect = {
-          x: this.px,
-          y: this.py,
-          w: 38,
-          h: 44,
+          x: this.px + 1,
+          y: this.py + 1,
+          w: SPR.TREX.w / 2 - 2,
+          h: SPR.TREX.h / 2 - 2,
         };
-        const q: Rect = { x: o.x, y: o.y, w: o.w, h: o.h };
+        const q: Rect = {
+          x: o.x + 1,
+          y: o.y + 1,
+          w: o.w - 2,
+          h: o.h - 2,
+        };
         if (overlap(p, q)) {
-          this.crash();
-          return;
+          const dinoBoxes = DINO_COLLISION;
+          const obsBoxes =
+            o.kind === "ptero"
+              ? PTERO_COLLISION
+              : o.size === "small"
+                ? CACTUS_COLLISION.small
+                : CACTUS_COLLISION.large;
+          // Sub-boxes are relative to outer AABB top-left (sprite_pos + 1),
+          // matching Chrome's createAdjustedCollisionBox(subBox, outerBox).
+          if (collides(this.px + 1, this.py + 1, dinoBoxes, o.x + 1, o.y + 1, obsBoxes)) {
+            this.crash();
+            return;
+          }
+        }
+      }
+
+      // pterodactyl frame animation
+      for (const o of this.obstacles) {
+        if (o.kind === "ptero") {
+          o.frameAcc += dt;
+          if (o.frameAcc > 120) {
+            o.frame = o.frame ? 0 : 1;
+            o.frameAcc = 0;
+          }
         }
       }
     }
@@ -242,24 +412,9 @@ export class CialloGame {
     }
     this.clouds = this.clouds.filter((c) => c.x + c.w > -60);
 
-    // running animation
-    this.frameAcc += dt;
-    if (this.frameAcc > 80) {
-      this.dinoFrame = this.dinoFrame ? 0 : 1;
-      this.frameAcc = 0;
-    }
-
     // score
-    this.score += ((this.speed * dt) / 16.67) * 0.025;
+    this.score += ((this.speed * dt) / (1000 / 60)) * 0.025;
     this.onScore?.(Math.floor(this.score));
-  }
-
-  private updateBlink(dt: number): void {
-    this.blinkTimer += dt;
-    if (this.blinkTimer > 4000) {
-      this.blinkState = !this.blinkState;
-      this.blinkTimer = 0;
-    }
   }
 
   private crash(): void {
@@ -277,12 +432,30 @@ export class CialloGame {
     return Math.max(base - this.speed * 10, 100);
   }
 
-  private spawnCactus(): void {
+  private spawnObstacle(): void {
+    // pterodactyl once speed is high enough
+    if (this.speed >= 8.5 && Math.random() < 0.3) {
+      const pteroY = [100, 75, 50][rand(0, 2)];
+      this.obstacles.push({
+        kind: "ptero",
+        x: W + rand(0, 30),
+        y: pteroY,
+        w: SPR.PTERODACTYL.w / 2,
+        h: SPR.PTERODACTYL.h / 2,
+        frame: 0,
+        frameAcc: 0,
+      });
+      this.lastTypes.push("ptero");
+      if (this.lastTypes.length > 3) this.lastTypes.shift();
+      return;
+    }
+    // cactus
+    const sz = SPR.CACTUS_SMALL;
+    const lz = SPR.CACTUS_LARGE;
     const types: Array<{ type: string; w: number; h: number; y: number }> = [
-      { type: "small", w: 17, h: 35, y: GROUND_Y - 35 },
-      { type: "large", w: 25, h: 50, y: GROUND_Y - 50 },
+      { type: "small", w: sz.w / 2, h: sz.h / 2, y: GROUND_Y - sz.h / 2 },
+      { type: "large", w: lz.w / 2, h: lz.h / 2, y: GROUND_Y - lz.h / 2 },
     ];
-    // prevent 3-in-a-row duplicates
     let idx = rand(0, types.length - 1);
     for (let safety = 0; safety < 5; safety++) {
       const t = types[idx].type;
@@ -293,6 +466,8 @@ export class CialloGame {
     this.lastTypes.push(t.type);
     if (this.lastTypes.length > 3) this.lastTypes.shift();
     this.obstacles.push({
+      kind: "cactus",
+      size: t.type as "small" | "large",
       x: W + rand(0, 30),
       y: t.y,
       w: t.w,
@@ -310,189 +485,125 @@ export class CialloGame {
     this.clouds.push({
       x: W,
       y: rand(10, 60),
-      w: rand(30, 50),
+      w: SPR.CLOUD.w / 2,
       speed: 0.3 + Math.random() * 0.2,
     });
   }
 
+  // ---- sprite helpers ----
+  private getTintedFrame(
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    color: string,
+  ): HTMLCanvasElement {
+    const key = `${sx},${sy},${sw},${sh},${color}`;
+    const cached = this.tintCache.get(key);
+    if (cached) return cached;
+    const c = document.createElement("canvas");
+    c.width = sw;
+    c.height = sh;
+    const cx = c.getContext("2d")!;
+
+    // 1. draw sprite (white background)
+    cx.drawImage(this.sprite, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    // 2. remove white background → transparent
+    const imgData = cx.getImageData(0, 0, sw, sh);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] > 240 && d[i + 1] > 240 && d[i + 2] > 240) {
+        d[i + 3] = 0;
+      }
+    }
+    cx.putImageData(imgData, 0, 0);
+
+    // 3. tint remaining pixels with color via source-atop
+    cx.globalCompositeOperation = "source-atop";
+    cx.fillStyle = color;
+    cx.fillRect(0, 0, sw, sh);
+
+    this.tintCache.set(key, c);
+    return c;
+  }
+
+  /** Get tinted sprite at 2x resolution. frameOffset is in 1x logical pixels (doubled internally). */
+  private tintedImage(
+    spr: (typeof SPR)[keyof typeof SPR],
+    color: string,
+    frameOffset = 0,
+  ): HTMLCanvasElement {
+    const sx = spr.x + frameOffset * 2;
+    const sy = spr.y;
+    const sw = spr.w;
+    const sh = spr.h;
+    return this.getTintedFrame(sx, sy, sw, sh, color);
+  }
+
   // ---- draw ----
   private draw(): void {
+    if (!this.spriteLoaded) return;
     const ctx = this.ctx;
     ctx.clearRect(0, 0, W, H);
 
-    // sky
-
     // clouds
     for (const c of this.clouds) {
-      ctx.fillStyle = this.colors.cloud;
-      this.roundRect(c.x, c.y, c.w, 12, 6);
-      ctx.fill();
+      const img = this.tintedImage(SPR.CLOUD, this.colors.cloud);
+      ctx.drawImage(img, c.x, c.y, SPR.CLOUD.w / 2, SPR.CLOUD.h / 2);
     }
 
-    // ground
-    ctx.strokeStyle = this.colors.ground;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y);
-    ctx.lineTo(W, GROUND_Y);
-    ctx.stroke();
-
-    // ground bumps
-    ctx.fillStyle = this.colors.ground;
-    for (let gx = -this.groundX; gx < W; gx += 20) {
-      ctx.fillRect(gx, GROUND_Y + 3, 4, 4);
-    }
+    // ground — dual-segment scrolling
+    const gx = -this.groundX;
+    const gy = GROUND_Y - SPR.HORIZON.h / 2 + 4;
+    const hw = SPR.HORIZON.w / 2;
+    const hh = SPR.HORIZON.h / 2;
+    const hImg = this.tintedImage(SPR.HORIZON, this.colors.ground);
+    ctx.drawImage(hImg, gx, gy, hw, hh);
+    ctx.drawImage(hImg, gx + hw, gy, hw, hh);
 
     // obstacles
     for (const o of this.obstacles) {
-      this.drawCactus(ctx, o);
+      if (o.kind === "ptero") {
+        this.drawPtero(ctx, o);
+      } else {
+        this.drawCactus(ctx, o);
+      }
     }
 
     // player
     this.drawDino(ctx);
   }
 
-  // ---- draw: dino ----
   private drawDino(ctx: CanvasRenderingContext2D): void {
-    const x = this.px,
-      y = this.py;
-    const crashed = this.phase === "crashed";
-    const blink = this.phase === "waiting" && this.blinkState;
+    const anim =
+      this.phase === "crashed"
+        ? DINO_FRAMES.crash
+        : this.phase === "waiting"
+          ? DINO_FRAMES.wait
+          : this.jumping
+            ? DINO_FRAMES.jump
+            : DINO_FRAMES.run;
 
-    ctx.save();
-    ctx.translate(x, y);
+    const frameIdx = this.dinoFrame % anim.frames.length;
+    const frameOff = anim.frames[frameIdx];
+    const tw = SPR.TREX.w / 2;
+    const th = SPR.TREX.h / 2;
 
-    // body
-    ctx.fillStyle = this.colors.fg;
-    ctx.beginPath();
-    ctx.ellipse(18, 22, 16, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // head (overlapping circle above body)
-    ctx.beginPath();
-    ctx.ellipse(26, 10, 11, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // tail
-    ctx.beginPath();
-    ctx.moveTo(0, 22);
-    ctx.lineTo(-12, 18);
-    ctx.lineTo(-8, 26);
-    ctx.closePath();
-    ctx.fill();
-
-    // mouth
-    if (crashed) {
-      // open mouth
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(33, 15, 3, 0, Math.PI);
-      ctx.fill();
-    }
-
-    // eye
-    if (crashed) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(29, 6);
-      ctx.lineTo(34, 10);
-      ctx.moveTo(34, 6);
-      ctx.lineTo(29, 10);
-      ctx.stroke();
-    } else if (blink) {
-      // eye closed (line)
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(29, 8);
-      ctx.lineTo(34, 8);
-      ctx.stroke();
-    } else {
-      // normal eye
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(31, 8, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#222";
-      ctx.beginPath();
-      ctx.arc(32, 8, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // legs
-    if (!crashed || this.jumping) {
-      ctx.fillStyle = this.colors.fg;
-      const legLen = crashed ? 0 : this.jumping ? 8 : 6;
-      // left leg
-      const lOff = this.dinoFrame ? 2 : -2;
-      ctx.fillRect(12 + lOff, 36, 7, legLen);
-      ctx.fillRect(20 - lOff, 36, 7, legLen);
-    }
-
-    // arms (tiny trex arms)
-    ctx.fillStyle = this.colors.fg;
-    ctx.fillRect(14, 24, 4, 6);
-    ctx.fillRect(22, 24, 4, 6);
-
-    // belly highlight
-    ctx.fillStyle = this.colors.belly;
-    ctx.beginPath();
-    ctx.ellipse(18, 26, 9, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
+    const img = this.tintedImage(SPR.TREX, this.colors.fg, frameOff);
+    const drawY = this.py + (this.squatting ? SQUAT_SHIFT : 0);
+    ctx.drawImage(img, this.px, drawY, tw, th);
   }
 
-  // ---- draw: cactus ----
-  private drawCactus(ctx: CanvasRenderingContext2D, o: Cactus): void {
-    ctx.fillStyle = this.colors.fg;
-    // trunk
-    ctx.fillRect(o.x + 4, o.y + 6, o.w - 8, o.h - 6);
-    // top
-    ctx.beginPath();
-    ctx.arc(o.x + o.w / 2, o.y + 6, (o.w - 8) / 2, Math.PI, 0);
-    ctx.fill();
-    // spikes
-    for (let sy = o.y + 10; sy < o.y + o.h - 10; sy += 8) {
-      ctx.fillRect(o.x, sy, 4, 4);
-      ctx.fillRect(o.x + o.w - 4, sy, 4, 4);
-    }
+  private drawCactus(ctx: CanvasRenderingContext2D, o: Obstacle): void {
+    const spr = o.size === "small" ? SPR.CACTUS_SMALL : SPR.CACTUS_LARGE;
+    const img = this.tintedImage(spr, this.colors.fg);
+    ctx.drawImage(img, o.x, o.y, o.w, o.h);
   }
 
-  // ---- draw: round rect helper ----
-  private roundRect(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    r: number,
-  ): void {
-    const ctx = this.ctx;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
-    ctx.closePath();
+  private drawPtero(ctx: CanvasRenderingContext2D, o: Ptero): void {
+    const frameOff = o.frame * (SPR.PTERODACTYL.w / 2);
+    const img = this.tintedImage(SPR.PTERODACTYL, this.colors.fg, frameOff);
+    ctx.drawImage(img, o.x, o.y, o.w, o.h);
   }
-}
-
-// ---- types ----
-interface Cactus {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-interface Cloud_ {
-  x: number;
-  y: number;
-  w: number;
-  speed: number;
 }
