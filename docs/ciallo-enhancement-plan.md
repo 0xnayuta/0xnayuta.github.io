@@ -117,7 +117,7 @@ private getTintedFrame(sx, sy, sw, sh, color): HTMLCanvasElement {
 
 **新增内容**：
 
-- 翼龙（Pterodactyl）障碍物类型：速度 ≥ 8.5 时 30% 概率出现，3 个高度层（100/75/50），2 帧动画
+- 翼龙（Pterodactyl）障碍物类型：速度 ≥ 7 时 10%~40% 渐变概率出现，3 个高度层（110/70/30），2 帧动画
 - 地面滚动：双段 600px 地平线精灵滚动，替代 `line`+`fillRect` 点状地面
 - 云朵：精灵图替代 `roundRect`
 
@@ -197,7 +197,7 @@ const DINO_COLLISION: CollisionBox[] = [
 
 ### 2.2 速度曲线
 
-**现状**（`ciallo-game.ts:186`）：
+**现状（优化前）**：
 
 ```javascript
 if (this.speed < SPEED_MAX) this.speed += ACCEL * dt;
@@ -210,17 +210,38 @@ if (this.speed < SPEED_MAX) this.speed += ACCEL * dt;
 - 起始速度 6 过快，新手无反应时间
 - 线性加速 → 全场感觉一致，无「开始慢→逐步快」的缓入感
 
-**修复**：将起始速度降至 3-4，使用指数缓入曲线：
+**完成项**：
 
-```javascript
-speed = SPEED_START + (SPEED_MAX - SPEED_START) * ((1 - e) ^ (-runTime / T));
+- [x] **起始速度降至 3**：`SPEED_START=6 → 3`，给新手充裕反应时间
+- [x] **指数缓入曲线**：用 `SPEED_TAU=12000` 时间常数的指数公式替代线性加速，前段平缓、中段加速明显
+
+**实现**（`ciallo-game.ts`）：
+
+```typescript
+const SPEED_START = 3;
+const SPEED_TAU = 12000; // exponential easing time constant (ms)
+
+// speed ramp — exponential easing
+this.speed = SPEED_START + (SPEED_MAX - SPEED_START) * (1 - Math.exp(-this.runTime / SPEED_TAU));
 ```
 
-`T` 控制加速时间常数（如 T=15000ms），使初始段增长平缓，中段加速明显。
+| runTime | 速度 | 感受 |
+|---------|------|------|
+| 0s | 3.0 | 起步从容 |
+| 5s | ~5.5 | 逐步提速 |
+| 10s | ~7.6 | 中段加速明显 |
+| 20s | ~10.5 | 高速区 |
+| 40s+ | ~12.7 | 趋近封顶 |
+
+**相关文件**：
+
+| 文件                         | 作用                                        |
+| ---------------------------- | ------------------------------------------- |
+| `src/scripts/ciallo-game.ts` | `SPEED_START`, `SPEED_TAU`, 指数缓入公式    |
 
 ### 2.3 得分机制
 
-**现状**（`ciallo-game.ts:237`）：
+**现状（优化前）**：
 
 ```javascript
 this.score += ((this.speed * dt) / 16.67) * 0.025;
@@ -230,36 +251,105 @@ this.score += ((this.speed * dt) / 16.67) * 0.025;
 
 **问题**：高速 vs 低速的得分差异不够显著（仅 2.2x）。
 
-**修复**：改为超线性关系，如 `score += speed^1.5 * dt * k`，使高速阶段得分明显加快。
+**完成项**：
+
+- [x] **超线性得分**：`speed^1.5 × dt × SCORE_K`，速度 6 与 13 的得分差距从 2.2x 拉大到 3.2x
+- [x] **命名常量**：`SCORE_K=0.0025` 独立定义，方便调参
+
+**实现**（`ciallo-game.ts`）：
+
+```typescript
+const SCORE_K = 0.0025; // score multiplier for speed^1.5 formula
+
+this.score += (this.speed ** 1.5) * dt * SCORE_K;
+```
+
+| 速度 | 分值速率 (pts/s) | 相对基准 |
+|------|------------------|----------|
+| 3 | ~0.8 | 0.09x |
+| 6 | ~2.2 | 1.0x |
+| 9 | ~4.1 | 1.8x |
+| 13 | ~7.0 | 3.2x |
+
+**相关文件**：
+
+| 文件                         | 作用                                        |
+| ---------------------------- | ------------------------------------------- |
+| `src/scripts/ciallo-game.ts` | `SCORE_K` 常量, `speed ** 1.5` 超线性公式   |
 
 ### 2.4 障碍物密度与高度
 
-**现状**（`ciallo-game.ts:259-262`）：
+**现状（优化前）**：
 
 ```javascript
-private calcGap(): number {
-  const base = 180 + Math.random() * 100;
-  return Math.max(base - this.speed * 10, 100);
-}
+// 旧代码（改为时间基公式前）：
+const base = 180 + Math.random() * 100;
+return Math.max(base - this.speed * 10, 100);
 ```
 
-- 硬编码最小间隔 100px（速度 6 时约 277ms 过一障碍）
-- CLEAR_TIME=3000ms 后立即有障碍
+- 间隔随速度线性减小，最小间隔 100px（速度 6 时约 277ms），高难度期过于密集
+- `CLEAR_TIME=1000ms` 后立即有障碍，起始速度 6 时玩家几乎无法反应
 - 只有两种固定尺寸（小 17×35, 大 25×50）
+- 底部与地面完全钉死，无高度随机变化
+- 翼龙固定阈值 `speed ≥ 8.5` + 固定 30% 概率、3 个高度层只跨 50px
 
-**问题**：
+**完成项**：
 
-- 间隔随速度减小但下限太低，高难度期过于密集
-- 高度无变化，不随游戏进程增长
-- 障碍物在早期就应该更稀疏
+- [x] **`CLEAR_TIME` 放宽**：1000ms → 2000ms，起始速度降至 3 后玩家有缓冲时间
+- [x] **`calcGap()` 重构**：`runTime` 指数衰减公式（150~1250ms 区间），随游戏进程平滑缩减，不再依赖 `this.speed` 计算像素距离
+- [x] **三连仙人掌（triple）**：使用 CACTUS_SMALL 精灵绘制 3 个并排（16px 间隔，总宽 49px），`speed ≥ 8` 时加入可选池
+- [x] **碰撞盒同步扩展**：`CACTUS_COLLISION.triple` 包含 9 个子盒（3 组 small 偏移 16px）
+- [x] **高度随机偏移**：`Obstacle.yOff = rand(-3, 3)`，视觉上 ±3px 微调，碰撞仍用基准 y
+- [x] **翼龙概率渐变**：`speed ≥ 7` 时 10%~40% 线性渐变，不再硬阈值 8.5+固定 30%
+- [x] **翼龙高度扩展**：`[100, 75, 50]` → `[110, 70, 30]`，垂直跨度从 50px 扩大到 80px
 
-**修复**：
+**实现**（`ciallo-game.ts`）：
 
+```typescript
+const CLEAR_TIME = 2000; // ms before first obstacle appears
+
+private calcGap(): number {
+  // Exponential gap: sparse early (avg ~1.9s), dense late (avg ~340ms)
+  const t = this.runTime;
+  const minGap = 150 + 1100 * Math.exp(-t / 15000);
+  const maxGap = minGap * 2.0;
+  return minGap + Math.random() * (maxGap - minGap);
+}
+
+// Triple cactus in spawnObstacle:
+if (this.speed >= 8) {
+  types.push({ type: "triple", w: 49, h: sz.h / 2, y: GROUND_Y - sz.h / 2 });
+}
+
+// Pterodactyl gradual:
+if (this.speed >= 7 && Math.random() < 0.1 + (this.speed - 7) / (SPEED_MAX - 7) * 0.3) {
+  const pteroY = [110, 70, 30][rand(0, 2)];
+  // ...
+}
+
+// Visual y offset:
+yOff: rand(-3, 3),
 ```
-gap = baseGap * (SPEED_START / speed) × 变速因子
-```
 
-初始最小间隔设 400-500ms，随 `runTime` 非线性缩短到 150-200ms 最小值。引入第三个更大的 cactus 变体（w=30, h=65），后期随机出现。
+| `runTime` | 间隔 avg | 感受 |
+|-----------|----------|------|
+| 0s | ~1.9s | 开阔 |
+| 10s | ~1.1s | 节奏加快 |
+| 20s | ~0.66s | 中等密度 |
+| 40s+ | ~0.34s | 高密度 |
+
+| 速度 | 翼龙概率 |
+|------|----------|
+| 7 | 10% |
+| 9 | 20% |
+| 11 | 30% |
+| 13 | 40% |
+
+**相关文件**：
+
+| 文件                         | 作用                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `src/scripts/ciallo-game.ts` | `CLEAR_TIME`, `calcGap()`, `Obstacle.yOff`, `CACTUS_COLLISION.triple`, 翼龙渐变 |
 
 ### 2.5 跳跃手感
 
@@ -328,10 +418,10 @@ this.spaceHeld = pressed;  // keydown→true, keyup→false
 
 **相关文件**：
 
-| 文件                             | 作用                                                    |
-| -------------------------------- | ------------------------------------------------------- |
-| `src/scripts/ciallo-game.ts`     | `jump()`、squat→jump 过渡、可变高度物理、事件绑定、绘制 |
-| `src/pages/ciallo.astro`         | 无直接变更（游戏逻辑全部封装在 `ciallo-game.ts`）        |
+| 文件                         | 作用                                                    |
+| ---------------------------- | ------------------------------------------------------- |
+| `src/scripts/ciallo-game.ts` | `jump()`、squat→jump 过渡、可变高度物理、事件绑定、绘制 |
+| `src/pages/ciallo.astro`     | 无直接变更（游戏逻辑全部封装在 `ciallo-game.ts`）       |
 
 ## 三、优先顺序建议
 
@@ -340,6 +430,6 @@ this.spaceHeld = pressed;  // keydown→true, keyup→false
 | P0     | 碰撞判定（子盒系统）         | 大     | 核心体验 bug        | 已完成 |
 | P0     | Canvas 精灵渲染 + 主题色适配 | 大     | 暗色模式 + 视觉效果 | 已完成 |
 | P1     | 跳跃手感（variable jump）    | 中     | 操作体验            | 已完成 |
-| P1     | 速度曲线 + 得分              | 中     | 游戏节奏            | -      |
-| P2     | 障碍物密度/高度              | 中     | 难度曲线            | -      |
+| P1     | 速度曲线 + 得分              | 中     | 游戏节奏            | 已完成 |
+| P2     | 障碍物密度/高度              | 中     | 难度曲线            | 已完成 |
 | P2     | 浮动文字颜色/字体            | 小     | 视觉效果            | 已完成 |

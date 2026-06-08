@@ -9,15 +9,16 @@ const GROUND_Y = 277;
 const DINO_X = 50;
 
 // physics
-const GRAVITY = 0.6;
+const GRAVITY = 0.75;
 const JUMP_VEL = -12;
 const GRAVITY_HELD_FACTOR = 0.75;
 const SQUAT_MS = 50;
 const SQUAT_SHIFT = 8;
-const SPEED_START = 6;
+const SPEED_START = 3;
 const SPEED_MAX = 13;
-const ACCEL = 0.001;
-const CLEAR_TIME = 1000; // ms before first obstacle appears
+const SPEED_TAU = 12000; // exponential easing time constant (ms)
+const SCORE_K = 0.0025; // score multiplier for speed^1.5 formula
+const CLEAR_TIME = 2000; // ms before first obstacle appears
 
 type Phase = "waiting" | "playing" | "crashed";
 
@@ -88,11 +89,12 @@ const DEFAULT_COLORS: GameColors = {
 // ---- obstacle types ----
 interface Obstacle {
   kind: "cactus";
-  size: "small" | "large";
+  size: "small" | "large" | "triple";
   x: number;
   y: number;
   w: number;
   h: number;
+  yOff?: number; // visual-only vertical offset (±px), collision uses base y
 }
 
 interface Ptero {
@@ -150,6 +152,18 @@ const CACTUS_COLLISION: Record<string, CollisionBox[]> = {
     { x: 0, y: 12, w: 7, h: 38 },
     { x: 8, y: 0, w: 7, h: 49 },
     { x: 13, y: 10, w: 10, h: 38 },
+  ],
+  triple: [
+    // 3× small cactus sub-boxes shifted 16px apart
+    { x: 0, y: 7, w: 5, h: 27 },
+    { x: 4, y: 0, w: 6, h: 34 },
+    { x: 10, y: 4, w: 7, h: 14 },
+    { x: 16, y: 7, w: 5, h: 27 },
+    { x: 20, y: 0, w: 6, h: 34 },
+    { x: 26, y: 4, w: 7, h: 14 },
+    { x: 32, y: 7, w: 5, h: 27 },
+    { x: 36, y: 0, w: 6, h: 34 },
+    { x: 42, y: 4, w: 7, h: 14 },
   ],
 };
 
@@ -340,9 +354,10 @@ export class CialloGame {
         this.pv = 0;
       }
     }
-
-    // speed ramp
-    if (this.speed < SPEED_MAX) this.speed += ACCEL * dt;
+    // speed ramp — exponential easing: start slow, approach SPEED_MAX asymptotically
+    this.speed =
+      SPEED_START +
+      (SPEED_MAX - SPEED_START) * (1 - Math.exp(-this.runTime / SPEED_TAU));
 
     // ground scroll
     this.groundX =
@@ -379,11 +394,7 @@ export class CialloGame {
         if (overlap(p, q)) {
           const dinoBoxes = DINO_COLLISION;
           const obsBoxes =
-            o.kind === "ptero"
-              ? PTERO_COLLISION
-              : o.size === "small"
-                ? CACTUS_COLLISION.small
-                : CACTUS_COLLISION.large;
+            o.kind === "ptero" ? PTERO_COLLISION : CACTUS_COLLISION[o.size];
           // Sub-boxes are relative to outer AABB top-left (sprite_pos + 1),
           // matching Chrome's createAdjustedCollisionBox(subBox, outerBox).
           if (
@@ -422,7 +433,7 @@ export class CialloGame {
     this.clouds = this.clouds.filter((c) => c.x + c.w > -60);
 
     // score
-    this.score += ((this.speed * dt) / (1000 / 60)) * 0.025;
+    this.score += this.speed ** 1.5 * dt * SCORE_K;
     this.onScore?.(Math.floor(this.score));
   }
 
@@ -437,21 +448,21 @@ export class CialloGame {
 
   // ---- spawn helpers ----
   private calcGap(): number {
-    // Pixel-based gap that grows with speed (matching Chrome's design).
-    // Avoids obstacles clustering at high speed — the original time-based
-    // gap shrank with speed, causing extremely dense spawning.
-    const minPx = 150 + this.speed * 10;
-    const maxPx = minPx * 1.5;
-    const px = minPx + Math.random() * (maxPx - minPx);
-    // Convert pixel distance to ms delay based on current speed.
-    // At 60fps: this.speed * 0.06 ≈ pixels-per-ms.
-    return px / (this.speed * 0.06);
+    // Exponential gap: sparse early (avg ~1.9s), dense late (avg ~340ms).
+    // Decays with runTime so difficulty builds smoothly, independent of speed.
+    const t = this.runTime;
+    const minGap = 150 + 1100 * Math.exp(-t / 15000);
+    const maxGap = minGap * 2.0;
+    return minGap + Math.random() * (maxGap - minGap);
   }
 
   private spawnObstacle(): void {
-    // pterodactyl once speed is high enough
-    if (this.speed >= 8.5 && Math.random() < 0.3) {
-      const pteroY = [100, 75, 50][rand(0, 2)];
+    // pterodactyl — gradual probability from speed 7→13 (10%→40%)
+    if (
+      this.speed >= 7 &&
+      Math.random() < 0.1 + ((this.speed - 7) / (SPEED_MAX - 7)) * 0.3
+    ) {
+      const pteroY = [110, 70, 30][rand(0, 2)];
       this.obstacles.push({
         kind: "ptero",
         x: W + rand(0, 30),
@@ -465,13 +476,22 @@ export class CialloGame {
       if (this.lastTypes.length > 3) this.lastTypes.shift();
       return;
     }
-    // cactus
+    // cactus — include triple (3× small group) at speed ≥ 8
     const sz = SPR.CACTUS_SMALL;
     const lz = SPR.CACTUS_LARGE;
     const types: Array<{ type: string; w: number; h: number; y: number }> = [
       { type: "small", w: sz.w / 2, h: sz.h / 2, y: GROUND_Y - sz.h / 2 },
       { type: "large", w: lz.w / 2, h: lz.h / 2, y: GROUND_Y - lz.h / 2 },
     ];
+    if (this.speed >= 8) {
+      // triple: 3 small cacti side-by-side, 16px apart
+      types.push({
+        type: "triple",
+        w: 49,
+        h: sz.h / 2,
+        y: GROUND_Y - sz.h / 2,
+      });
+    }
     let idx = rand(0, types.length - 1);
     for (let safety = 0; safety < 5; safety++) {
       const t = types[idx].type;
@@ -483,11 +503,12 @@ export class CialloGame {
     if (this.lastTypes.length > 3) this.lastTypes.shift();
     this.obstacles.push({
       kind: "cactus",
-      size: t.type as "small" | "large",
+      size: t.type as "small" | "large" | "triple",
       x: W + rand(0, 30),
       y: t.y,
       w: t.w,
       h: t.h,
+      yOff: rand(-3, 3),
     });
   }
 
@@ -612,9 +633,24 @@ export class CialloGame {
   }
 
   private drawCactus(ctx: CanvasRenderingContext2D, o: Obstacle): void {
-    const spr = o.size === "small" ? SPR.CACTUS_SMALL : SPR.CACTUS_LARGE;
-    const img = this.tintedImage(spr, this.colors.fg);
-    ctx.drawImage(img, o.x, o.y, o.w, o.h);
+    const drawY = o.y + (o.yOff ?? 0);
+    if (o.size === "triple") {
+      // Draw 3 small cacti side-by-side at 16px offset each
+      const img = this.tintedImage(SPR.CACTUS_SMALL, this.colors.fg);
+      for (let i = 0; i < 3; i++) {
+        ctx.drawImage(
+          img,
+          o.x + i * 16,
+          drawY,
+          SPR.CACTUS_SMALL.w / 2,
+          SPR.CACTUS_SMALL.h / 2,
+        );
+      }
+    } else {
+      const spr = o.size === "small" ? SPR.CACTUS_SMALL : SPR.CACTUS_LARGE;
+      const img = this.tintedImage(spr, this.colors.fg);
+      ctx.drawImage(img, o.x, drawY, o.w, o.h);
+    }
   }
 
   private drawPtero(ctx: CanvasRenderingContext2D, o: Ptero): void {
