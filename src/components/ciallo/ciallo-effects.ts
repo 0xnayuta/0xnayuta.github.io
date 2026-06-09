@@ -1,6 +1,8 @@
 // Floating Ciallo text effect — zero DOM on idle, Web Animations API driven
 const VARIANTS = ["Ciallo～(∠・ω< )⌒★", "Ciallo～(∠・ω< )⌒☆"];
 let variantIdx = 0;
+const THROTTLE_MS = 300; // ms between spawns — prevents keyboard repeat / rapid-click spam
+let lastSpawn = 0;
 
 const FONTS = [
   '"ciallo-kuaile", var(--font-app), cursive',
@@ -22,7 +24,10 @@ function randomThemeColor(): string {
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
-export function spawnFloatingCiallo(x?: number, y?: number): void {
+export function spawnFloatingCiallo(x?: number, y?: number): boolean {
+  const now = Date.now();
+  if (now - lastSpawn < THROTTLE_MS) return false;
+  lastSpawn = now;
   if (x === undefined || y === undefined) {
     const mX = 80;
     const mY = 60;
@@ -55,4 +60,5 @@ export function spawnFloatingCiallo(x?: number, y?: number): void {
     ],
     { duration: 2500, easing: "ease-out", fill: "forwards" },
   ).finished.then(() => el.remove());
+  return true;
 }

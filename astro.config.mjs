@@ -1,4 +1,5 @@
 // @ts-check
+import { unified } from "@astrojs/markdown-remark";
 import { defineConfig, envField, fontProviders } from "astro/config";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
@@ -27,10 +28,12 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkPlugins: [
-      remarkToc,
-      [remarkCollapseToc, { test: "Table of contents" }],
-    ],
+    processor: unified({
+      remarkPlugins: [
+        remarkToc,
+        [remarkCollapseToc, { test: "Table of contents" }],
+      ],
+    }),
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
       themes: { light: "min-light", dark: "night-owl" },
