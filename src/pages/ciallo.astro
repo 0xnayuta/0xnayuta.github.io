@@ -45,6 +45,10 @@ import CialloGameWrapper from "@/components/ciallo/CialloGameWrapper.astro";
 <script>
 import { CialloGame, type GameColors } from "@/scripts/ciallo-game";
   import { spawnFloatingCiallo } from "@/components/ciallo/ciallo-effects";
+  import { SoundManager } from "@/scripts/sound-manager";
+  import cialloSoundUrl from "@/assets/sounds/ciallo.mp3";
+  const sm = new SoundManager();
+  sm.load(cialloSoundUrl);
 
 const LIGHT_COLORS: GameColors = {
   fg: "#535353",
@@ -91,13 +95,13 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
 
   document.addEventListener("click", (e) => {
     if (touchHandled) return;
-    spawnFloatingCiallo(e.pageX, e.pageY);
+    if (spawnFloatingCiallo(e.pageX, e.pageY)) sm.play();
     if (!msgOverlay.classList.contains("is-hidden")) startGame();
   });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === " ") {
-      spawnFloatingCiallo();
+      if (spawnFloatingCiallo()) sm.play();
       startGame();
       e.preventDefault();
     }
@@ -137,7 +141,7 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
         startGame();
       }
     } else if (isTap) {
-      spawnFloatingCiallo(cx, cy);
+      if (spawnFloatingCiallo(cx, cy)) sm.play();
       if (!msgOverlay.classList.contains("is-hidden")) {
         startGame();
       }

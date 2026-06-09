@@ -19,6 +19,16 @@ const SPEED_MAX = 13;
 const SPEED_TAU = 12000; // exponential easing time constant (ms)
 const SCORE_K = 0.0025; // score multiplier for speed^1.5 formula
 const CLEAR_TIME = 2000; // ms before first obstacle appears
+const CLOUD_MIN_GAP = 200; // px — min horizontal gap between cloud spawns
+// [character overlay — uncomment when meguru sprite is ready]
+// const MEGURU_OFFSET_X = 22;
+// const MEGURU_OFFSET_Y = 6;
+// const MEGURU_W = 20;
+// const MEGURU_H = 20;
+// const MEGURU_FRAMES: Record<string, number> = {
+//   normal: 0,
+//   crash: 1,
+// };
 
 type Phase = "waiting" | "playing" | "crashed";
 
@@ -513,7 +523,10 @@ export class CialloGame {
   }
 
   private cloudTimer(dt: number): void {
-    if (this.clouds.length < 6 && Math.random() < 0.002 * dt) {
+    if (this.clouds.length >= 6) return;
+    const rightmost = Math.max(...this.clouds.map((c) => c.x));
+    if (rightmost > W - CLOUD_MIN_GAP) return;
+    if (Math.random() < 0.002 * dt) {
       this.spawnCloud();
     }
   }
@@ -521,9 +534,9 @@ export class CialloGame {
   private spawnCloud(): void {
     this.clouds.push({
       x: W,
-      y: rand(10, 60),
+      y: rand(10, H * 0.35),
       w: SPR.CLOUD.w / 2,
-      speed: 0.3 + Math.random() * 0.2,
+      speed: 0.2 + Math.random() * 0.5,
     });
   }
 
@@ -630,6 +643,12 @@ export class CialloGame {
     const img = this.tintedImage(SPR.TREX, this.colors.fg, frameOff);
     const drawY = this.py + (this.squatting ? SQUAT_SHIFT : 0);
     ctx.drawImage(img, this.px, drawY, tw, th);
+    // [uncomment when meguru sprite is ready]
+    // const meguruFrame = this.phase === "crashed"
+    //   ? MEGURU_FRAMES.crash
+    //   : MEGURU_FRAMES.normal;
+    // const mc = this.getMeguruFrame(meguruFrame);
+    // ctx.drawImage(mc, this.px + MEGURU_OFFSET_X, drawY + MEGURU_OFFSET_Y, MEGURU_W, MEGURU_H);
   }
 
   private drawCactus(ctx: CanvasRenderingContext2D, o: Obstacle): void {
