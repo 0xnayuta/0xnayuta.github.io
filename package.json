@@ -15,19 +15,19 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@astrojs/rss": "4.0.18",
+    "@astrojs/rss": "4.0.19",
     "@astrojs/sitemap": "3.7.3",
     "@chenglou/pretext": "^0.0.7",
     "@resvg/resvg-js": "^2.6.2",
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.2",
     "astro": "^6.4.6",
-    "dayjs": "^1.11.20",
+    "dayjs": "^1.11.21",
     "lodash.kebabcase": "^4.1.1",
     "remark-toc": "^9.0.0",
     "satori": "^0.26.0",
     "sharp": "^0.34.5",
     "slugify": "^1.6.9",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -35,7 +35,7 @@
     "@astrojs/markdown-remark": "^7.2.0",
     "@pagefind/default-ui": "^1.5.2",
     "@shikijs/transformers": "^4.0.2",
-    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/lodash.kebabcase": "^4.1.9",
     "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^10.3.0",
