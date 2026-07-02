@@ -9,18 +9,18 @@
 
 ## 执行结果总览
 
-| 状态                 | 数量 |
-| -------------------- | ---- |
-| ✅ 已恢复            | 1    |
+| 状态                | 数量 |
+| ------------------- | ---- |
+| ✅ 已恢复           | 1    |
 | ⏭ 跳过（v6 已满足） | 13   |
-| ➕ 额外清理项        | 1    |
+| ➕ 额外清理项       | 1    |
 
 ---
 
 ## P2 执行结果
 
-| 项  | 文件                         | 结果    | 说明                                                       |
-| --- | ---------------------------- | ------- | ---------------------------------------------------------- |
+| 项  | 文件                         | 结果   | 说明                                                       |
+| --- | ---------------------------- | ------ | ---------------------------------------------------------- |
 | P2  | `src/content.config.ts`      | ⏭ 跳过 | 差异审查通过；现有 frontmatter 与 schema 兼容，无需改动。  |
 | P2  | `src/utils/slugify.ts`       | ⏭ 跳过 | 与旧站核心规则一致（Latin/non-Latin 混合策略），无需改动。 |
 | P2  | `src/components/Tag.astro`   | ⏭ 跳过 | 仅视觉差异；功能正常，保留 v6 实现。                       |
@@ -36,15 +36,15 @@
 
 | 项  | 文件                                   | 结果      | 说明                                                       |
 | --- | -------------------------------------- | --------- | ---------------------------------------------------------- |
-| P3  | `src/utils/getSortedPosts.ts`          | ⏭ 跳过   | 与旧逻辑一致（`modDatetime ?? pubDatetime` 倒序）。        |
-| P3  | `src/utils/postFilter.ts`              | ⏭ 跳过   | 与旧逻辑一致（draft + scheduled margin + DEV 例外）。      |
-| P3  | `src/pages/tags/[tag]/[...page].astro` | ⏭ 跳过   | 分页与过滤行为符合预期。                                   |
-| P3  | `src/pages/posts/[...page].astro`      | ⏭ 跳过   | 分页与 backUrl 行为正常。                                  |
-| P3  | `src/pages/rss.xml.ts`                 | ⏭ 跳过   | 标题/描述/site/link 生成符合当前配置。                     |
+| P3  | `src/utils/getSortedPosts.ts`          | ⏭ 跳过    | 与旧逻辑一致（`modDatetime ?? pubDatetime` 倒序）。        |
+| P3  | `src/utils/postFilter.ts`              | ⏭ 跳过    | 与旧逻辑一致（draft + scheduled margin + DEV 例外）。      |
+| P3  | `src/pages/tags/[tag]/[...page].astro` | ⏭ 跳过    | 分页与过滤行为符合预期。                                   |
+| P3  | `src/pages/posts/[...page].astro`      | ⏭ 跳过    | 分页与 backUrl 行为正常。                                  |
+| P3  | `src/pages/rss.xml.ts`                 | ⏭ 跳过    | 标题/描述/site/link 生成符合当前配置。                     |
 | P3  | `src/components/Datetime.astro`        | ✅ 已恢复 | 恢复中文日期观感：`zh*` 显示 `YYYY-M-D`，其他语言保留 v6。 |
-| P3  | `src/components/Header.astro`          | ⏭ 跳过   | v6 在 i18n、base/locale 兼容、a11y 上更优。                |
-| P3  | `src/components/Socials.astro`         | ⏭ 跳过   | 与 `astro-paper.config.ts` 配置式设计一致。                |
-| P3  | `src/components/LinkButton.astro`      | ⏭ 跳过   | v6 类型与语义更标准，无需回退。                            |
+| P3  | `src/components/Header.astro`          | ⏭ 跳过    | v6 在 i18n、base/locale 兼容、a11y 上更优。                |
+| P3  | `src/components/Socials.astro`         | ⏭ 跳过    | 与 `astro-paper.config.ts` 配置式设计一致。                |
+| P3  | `src/components/LinkButton.astro`      | ⏭ 跳过    | v6 类型与语义更标准，无需回退。                            |
 
 ---
 
