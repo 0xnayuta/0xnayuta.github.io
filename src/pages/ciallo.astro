@@ -88,6 +88,7 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
   // ---- game callbacks ----
   game.onScore = (s: number) => { scoreEl.textContent = pad5(s); };
   game.onHighScore = (s: number) => { hiScoreEl.textContent = pad5(s); };
+  hiScoreEl.textContent = pad5(game.getHighScore());
   game.onGameOver = () => { pressHint.classList.remove("is-visible"); };
 
   // ---- events ----
@@ -137,10 +138,12 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
     if (isSwipe) {
       if (msgOverlay.classList.contains("is-hidden")) {
         game.jump();
+        game.restart();
       } else {
         startGame();
       }
-    } else if (isTap) {
+    }
+    else if (isTap) {
       if (spawnFloatingCiallo(cx, cy)) sm.play();
       if (!msgOverlay.classList.contains("is-hidden")) {
         startGame();

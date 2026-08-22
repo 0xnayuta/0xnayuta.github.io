@@ -20,6 +20,7 @@ const SPEED_TAU = 12000; // exponential easing time constant (ms)
 const SCORE_K = 0.0025; // score multiplier for speed^1.5 formula
 const CLEAR_TIME = 2000; // ms before first obstacle appears
 const CLOUD_MIN_GAP = 200; // px — min horizontal gap between cloud spawns
+const HS_KEY = "ciallo:hi";
 // [character overlay — uncomment when meguru sprite is ready]
 // const MEGURU_OFFSET_X = 22;
 // const MEGURU_OFFSET_Y = 6;
@@ -233,11 +234,15 @@ export class CialloGame {
 
   constructor(root: HTMLElement, colors?: GameColors) {
     this.cvs = document.createElement("canvas");
-    this.cvs.width = W;
-    this.cvs.height = H;
     this.cvs.className = "runner-canvas";
+    const dpr = window.devicePixelRatio || 1;
+    this.cvs.width = W * dpr;
+    this.cvs.height = H * dpr;
+    this.cvs.style.width = `${W}px`;
+    this.cvs.style.height = `${H}px`;
     root.appendChild(this.cvs);
     this.ctx = this.cvs.getContext("2d")!;
+    this.ctx.scale(dpr, dpr);
     this.colors = colors ?? DEFAULT_COLORS;
 
     this.sprite = new Image();
@@ -247,6 +252,7 @@ export class CialloGame {
     this.sprite.src = spriteUrl.src;
 
     this.py = GROUND_Y - SPR.TREX.h / 2;
+    this.highScore = this.loadHighScore();
     this.spawnCloud();
     this.listen();
     this.tick(0);
@@ -289,9 +295,31 @@ export class CialloGame {
     }
   }
 
+  /** Return the current high score (persisted across sessions). */
+  getHighScore(): number {
+    return this.highScore;
+  }
+
   // ---- lifecycle ----
   destroy(): void {
     cancelAnimationFrame(this.raqId);
+  }
+
+  private loadHighScore(): number {
+    try {
+      const v = localStorage.getItem(HS_KEY);
+      return v ? parseInt(v, 10) || 0 : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private saveHighScore(): void {
+    try {
+      localStorage.setItem(HS_KEY, String(this.highScore));
+    } catch {
+      // storage unavailable — silently skip
+    }
   }
 
   // ---- event binding ----
@@ -451,6 +479,7 @@ export class CialloGame {
     this.phase = "crashed";
     if (this.score > this.highScore) {
       this.highScore = Math.floor(this.score);
+      this.saveHighScore();
       this.onHighScore?.(this.highScore);
     }
     this.onGameOver?.();
@@ -640,9 +669,21 @@ export class CialloGame {
     const tw = SPR.TREX.w / 2;
     const th = SPR.TREX.h / 2;
 
-    const img = this.tintedImage(SPR.TREX, this.colors.fg, frameOff);
     const drawY = this.py + (this.squatting ? SQUAT_SHIFT : 0);
-    ctx.drawImage(img, this.px, drawY, tw, th);
+
+    // body: full dino in fg color
+    const fgImg = this.tintedImage(SPR.TREX, this.colors.fg, frameOff);
+    ctx.drawImage(fgImg, this.px, drawY, tw, th);
+
+    // belly: bottom ~45% in belly color, clipped to dino silhouette
+    const bellyImg = this.tintedImage(SPR.TREX, this.colors.belly, frameOff);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(this.px, drawY + th * 0.55, tw, th * 0.45);
+    ctx.clip();
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.drawImage(bellyImg, this.px, drawY, tw, th);
+    ctx.restore();
     // [uncomment when meguru sprite is ready]
     // const meguruFrame = this.phase === "crashed"
     //   ? MEGURU_FRAMES.crash
