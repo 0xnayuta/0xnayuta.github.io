@@ -5,13 +5,14 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - satori@0.29.0
 
-pnpm:
-  overrides:
-    "brace-expansion@>=4.0.0 <5.0.5": ">=5.0.5"
-    "devalue@>=5.6.3 <=5.8.0": ">=5.8.1"
-    "fast-uri@<=3.1.0": ">=3.1.1"
-    "fast-uri@<=3.1.1": ">=3.1.2"
-    "fast-xml-builder@<=1.1.6": ">=1.1.7"
-    "fast-xml-parser@<5.7.0": ">=5.7.0"
-    "smol-toml@<1.6.1": ">=1.6.1"
-    "yaml@>=2.0.0 <2.8.3": ">=2.8.3"
+overrides:
+  "brace-expansion@>=4.0.0 <5.0.9": "5.0.9"
+  "devalue@>=5.6.3 <=5.8.0": ">=5.8.1"
+  "fast-uri@<3.1.5": "3.1.5"
+  "fast-xml-builder@<=1.1.6": ">=1.1.7"
+  "fast-xml-parser@<5.7.0": ">=5.7.0"
+  "js-yaml@>=4.0.0 <4.3.1": "4.3.1"
+  "nanoid@<3.3.18": "3.3.18"
+  "postcss@<=8.5.22": "8.5.23"
+  "smol-toml@<1.6.1": ">=1.6.1"
+  "yaml@>=2.0.0 <2.8.3": ">=2.8.3"
