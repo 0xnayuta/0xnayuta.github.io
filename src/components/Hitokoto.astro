@@ -20,7 +20,10 @@ const { defaultQuote, defaultSource } = Astro.props;
     <span class="hitokoto-inner">{defaultQuote}</span>
     <span class="hitokoto-quote text-2xl align-top ms-2">"</span>
   </span>
-  <span class="hitokoto-from mt-3 block w-full text-end text-sm"> —— {defaultSource}</span>
+  <span class="hitokoto-from mt-3 block w-full text-end text-sm">
+    {" "}
+    —— {defaultSource}
+  </span>
 </p>
 <noscript>
   <style>
@@ -90,7 +93,7 @@ const { defaultQuote, defaultSource } = Astro.props;
     try {
       localStorage.setItem(
         CACHE_KEY,
-        JSON.stringify({ sentence: item.sentence, source: item.source })
+        JSON.stringify({ sentence: item.sentence, source: item.source }),
       );
       localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
     } catch {
@@ -109,7 +112,7 @@ const { defaultQuote, defaultSource } = Astro.props;
           () => {
             el.classList.remove("fade-in");
           },
-          { once: true }
+          { once: true },
         );
       });
     });
@@ -118,11 +121,17 @@ const { defaultQuote, defaultSource } = Astro.props;
   function renderHitokoto(
     container: HTMLElement,
     item: HitokotoItem,
-    options: { animate?: boolean } = {}
+    options: { animate?: boolean } = {},
   ) {
-    const textWrapper = container.querySelector(".hitokoto-text") as HTMLElement | null;
-    const innerEl = container.querySelector(".hitokoto-inner") as HTMLElement | null;
-    const fromEl = container.querySelector(".hitokoto-from") as HTMLElement | null;
+    const textWrapper = container.querySelector(
+      ".hitokoto-text",
+    ) as HTMLElement | null;
+    const innerEl = container.querySelector(
+      ".hitokoto-inner",
+    ) as HTMLElement | null;
+    const fromEl = container.querySelector(
+      ".hitokoto-from",
+    ) as HTMLElement | null;
 
     if (innerEl) {
       innerEl.textContent = item.sentence;
@@ -141,7 +150,9 @@ const { defaultQuote, defaultSource } = Astro.props;
     }
   }
 
-  async function fetchHitokoto(signal: AbortSignal): Promise<HitokotoItem | null> {
+  async function fetchHitokoto(
+    signal: AbortSignal,
+  ): Promise<HitokotoItem | null> {
     const res = await fetch(HITOKOTO_API, { signal });
     if (!res.ok) throw new Error("Network response failed");
 
@@ -159,7 +170,9 @@ const { defaultQuote, defaultSource } = Astro.props;
     if (container.dataset.hitokotoLoading === "true") return;
     container.dataset.hitokotoLoading = "true";
 
-    const requestId = String((Number(container.dataset.hitokotoReqId || "0") || 0) + 1);
+    const requestId = String(
+      (Number(container.dataset.hitokotoReqId || "0") || 0) + 1,
+    );
     container.dataset.hitokotoReqId = requestId;
 
     const initial = loadFromCache() || getFallback(container);
@@ -191,7 +204,7 @@ const { defaultQuote, defaultSource } = Astro.props;
   function initHitokotos() {
     document
       .querySelectorAll<HTMLElement>("[data-hitokoto]")
-      .forEach(container => {
+      .forEach((container) => {
         void initHitokoto(container);
       });
   }

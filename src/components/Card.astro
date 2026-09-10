@@ -11,8 +11,14 @@ type Props = {
   maxLines?: number;
 } & CollectionEntry<"posts">;
 
-const { variant: Heading = "h2", id, data, filePath, body, maxLines = 2 } =
-  Astro.props;
+const {
+  variant: Heading = "h2",
+  id,
+  data,
+  filePath,
+  body,
+  maxLines = 2,
+} = Astro.props;
 
 const { title, description, ...props } = data;
 const excerpt = description || extractExcerpt(body || "", 200);

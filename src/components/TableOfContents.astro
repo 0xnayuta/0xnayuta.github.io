@@ -9,7 +9,9 @@ const t = useTranslations(locale);
 ---
 
 <nav id="toc" class="prose-sm" data-copy-link-label={t.toc.copyLink}>
-  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">{t.toc.title}</h2>
+  <h2 class="mb-2 text-base font-semibold uppercase tracking-wide text-foreground">
+    {t.toc.title}
+  </h2>
   <ul class="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto"></ul>
 </nav>
 
@@ -31,7 +33,7 @@ const t = useTranslations(locale);
 
   function addHeadingLinks(copyLinkLabel: string) {
     const headings = document.querySelectorAll(
-      "#article h2, #article h3, #article h4, #article h5, #article h6"
+      "#article h2, #article h3, #article h4, #article h5, #article h6",
     );
     headings.forEach((heading) => {
       if (heading.querySelector(".heading-link")) return;
