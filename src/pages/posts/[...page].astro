@@ -30,7 +30,9 @@ const t = useTranslations(locale);
 
   <Main pageTitle={t.pages.postsTitle} pageDesc={t.pages.postsDesc}>
     <ul>
-      {page.data.map(data => <Card {...data} />)}
+      {page.data.map((data) => (
+        <Card {...data} />
+      ))}
     </ul>
   </Main>
 
@@ -47,7 +49,7 @@ const t = useTranslations(locale);
     if (mainContent) {
       sessionStorage.setItem(
         "backUrl",
-        mainContent.dataset.backurl ?? defaultBackUrl
+        mainContent.dataset.backurl ?? defaultBackUrl,
       );
     }
   });

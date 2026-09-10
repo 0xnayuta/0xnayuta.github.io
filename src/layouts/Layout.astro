@@ -27,7 +27,7 @@ const {
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
 const rssHref = getRelativeLocaleUrl(
   Astro.currentLocale ?? config.site.lang,
-  "rss.xml"
+  "rss.xml",
 );
 ---
 
@@ -87,14 +87,9 @@ const rssHref = getRelativeLocaleUrl(
     <!-- Extra head content injected by child layouts (e.g. JSON-LD, article meta) -->
     <slot name="head" />
 
-    {
-      site.googleVerification && (
-        <meta
-          name="google-site-verification"
-          content={site.googleVerification}
-        />
-      )
-    }
+    {site.googleVerification && (
+      <meta name="google-site-verification" content={site.googleVerification} />
+    )}
 
     <!--
       Inline FOUC-prevention script: sets data-theme on <html> before
@@ -104,7 +99,7 @@ const rssHref = getRelativeLocaleUrl(
       (function () {
         const stored = localStorage.getItem("theme");
         const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
+          "(prefers-color-scheme: dark)",
         ).matches;
         const theme = stored ?? (prefersDark ? "dark" : "light");
         document.firstElementChild?.setAttribute("data-theme", theme);
@@ -112,12 +107,9 @@ const rssHref = getRelativeLocaleUrl(
         window.__theme = { value: theme };
       })();
     </script>
-
     <ClientRouter />
   </head>
-  <body
-    class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"
-  >
+  <body class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col">
     <slot />
     <Sakana />
     <script>

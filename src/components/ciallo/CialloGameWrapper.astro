@@ -9,11 +9,16 @@ const t = useTranslations(locale);
 <div id="gameContainer" class="game-wrap"></div>
 
 <div id="scoreDisplay" class="score-display">
-  <span id="scoreVal">00000</span><br />
-  <span class="hi">{t.ciallo.highScore} <span id="hiScoreVal">00000</span></span>
+  <span id="scoreVal">00000</span>
+  <br />
+  <span class="hi">
+    {t.ciallo.highScore} <span id="hiScoreVal">00000</span>
+  </span>
 </div>
 
-<div id="pressHint" class="press-hint">{t.ciallo.pressHint}</div>
+<div id="pressHint" class="press-hint">
+  {t.ciallo.pressHint}
+</div>
 
 <style>
   @font-face {

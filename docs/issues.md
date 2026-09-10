@@ -7,7 +7,8 @@
 当前外层容器是：
 
 ```astro
-  class="pointer-events-none fixed bottom-3 z-30 hidden h-[180px] w-[180px] sm:bottom-6 sm:block"
+class="pointer-events-none fixed bottom-3 z-30 hidden h-[180px] w-[180px]
+sm:bottom-6 sm:block"
 ```
 
 也就是说 sm 以下通过 CSS hidden 隐藏。

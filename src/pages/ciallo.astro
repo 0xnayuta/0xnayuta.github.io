@@ -13,7 +13,10 @@ import CialloGameWrapper from "@/components/ciallo/CialloGameWrapper.astro";
     id="ciallo-page"
     class="flex min-h-0 flex-1 flex-col items-center overflow-hidden"
   >
-    <div class="relative flex w-full max-w-3xl flex-1 flex-col" style="min-height: 0">
+    <div
+      class="relative flex w-full max-w-3xl flex-1 flex-col"
+      style="min-height: 0"
+    >
       <CialloGameWrapper />
       <CialloOverlay />
     </div>
@@ -43,32 +46,35 @@ import CialloGameWrapper from "@/components/ciallo/CialloGameWrapper.astro";
 </style>
 
 <script>
-import { CialloGame, type GameColors } from "@/scripts/ciallo-game";
+  import { CialloGame, type GameColors } from "@/scripts/ciallo-game";
   import { spawnFloatingCiallo } from "@/components/ciallo/ciallo-effects";
   import { SoundManager } from "@/scripts/sound-manager";
   import cialloSoundUrl from "@/assets/sounds/ciallo.mp3";
   const sm = new SoundManager();
   sm.load(cialloSoundUrl);
 
-const LIGHT_COLORS: GameColors = {
-  fg: "#535353",
-  belly: "#7a7a7a",
-  cloud: "#d0d0d0",
-  ground: "#535353",
-};
-const DARK_COLORS: GameColors = {
-  fg: "#d0d4dc",
-  belly: "#9ca3af",
-  cloud: "#4a5070",
-  ground: "#d0d4dc",
-};
-function currentThemeColors(): GameColors {
-  return document.documentElement.getAttribute("data-theme") === "dark"
-    ? DARK_COLORS
-    : LIGHT_COLORS;
-}
+  const LIGHT_COLORS: GameColors = {
+    fg: "#535353",
+    belly: "#7a7a7a",
+    cloud: "#d0d0d0",
+    ground: "#535353",
+  };
+  const DARK_COLORS: GameColors = {
+    fg: "#d0d4dc",
+    belly: "#9ca3af",
+    cloud: "#4a5070",
+    ground: "#d0d4dc",
+  };
+  function currentThemeColors(): GameColors {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+      ? DARK_COLORS
+      : LIGHT_COLORS;
+  }
 
-const game = new CialloGame(document.getElementById("gameContainer")!, currentThemeColors());
+  const game = new CialloGame(
+    document.getElementById("gameContainer")!,
+    currentThemeColors(),
+  );
   const scoreEl = document.getElementById("scoreVal")!;
   const hiScoreEl = document.getElementById("hiScoreVal")!;
   const msgOverlay = document.getElementById("msgOverlay")!;
@@ -86,10 +92,16 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
   }
 
   // ---- game callbacks ----
-  game.onScore = (s: number) => { scoreEl.textContent = pad5(s); };
-  game.onHighScore = (s: number) => { hiScoreEl.textContent = pad5(s); };
+  game.onScore = (s: number) => {
+    scoreEl.textContent = pad5(s);
+  };
+  game.onHighScore = (s: number) => {
+    hiScoreEl.textContent = pad5(s);
+  };
   hiScoreEl.textContent = pad5(game.getHighScore());
-  game.onGameOver = () => { pressHint.classList.remove("is-visible"); };
+  game.onGameOver = () => {
+    pressHint.classList.remove("is-visible");
+  };
 
   // ---- events ----
   let touchHandled = false;
@@ -113,41 +125,50 @@ const game = new CialloGame(document.getElementById("gameContainer")!, currentTh
   let touchX = 0;
   let touchT = 0;
 
-  document.addEventListener("touchstart", (e) => {
-    touchY = e.touches[0].clientY;
-    touchX = e.touches[0].clientX;
-    touchT = Date.now();
-  }, { passive: true });
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      touchY = e.touches[0].clientY;
+      touchX = e.touches[0].clientX;
+      touchT = Date.now();
+    },
+    { passive: true },
+  );
 
-  document.addEventListener("touchend", (e) => {
-    const dy = e.changedTouches[0].clientY - touchY;
-    const dx = e.changedTouches[0].clientX - touchX;
-    const dt = Date.now() - touchT;
-    const cx = e.changedTouches[0].clientX;
-    const cy = e.changedTouches[0].clientY;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const dy = e.changedTouches[0].clientY - touchY;
+      const dx = e.changedTouches[0].clientX - touchX;
+      const dt = Date.now() - touchT;
+      const cx = e.changedTouches[0].clientX;
+      const cy = e.changedTouches[0].clientY;
 
-    const isSwipe = dy < -30 && Math.abs(dx) < Math.abs(dy) * 2;
-    const isTap = Math.abs(dx) < 20 && Math.abs(dy) < 20 && dt < 300;
+      const isSwipe = dy < -30 && Math.abs(dx) < Math.abs(dy) * 2;
+      const isTap = Math.abs(dx) < 20 && Math.abs(dy) < 20 && dt < 300;
 
-    if (isSwipe || isTap) {
-      touchHandled = true;
-      setTimeout(() => { touchHandled = false; }, 350);
-      e.preventDefault();
-    }
-
-    if (isSwipe) {
-      if (msgOverlay.classList.contains("is-hidden")) {
-        game.jump();
-        game.restart();
-      } else {
-        startGame();
+      if (isSwipe || isTap) {
+        touchHandled = true;
+        setTimeout(() => {
+          touchHandled = false;
+        }, 350);
+        e.preventDefault();
       }
-    }
-    else if (isTap) {
-      if (spawnFloatingCiallo(cx, cy)) sm.play();
-      if (!msgOverlay.classList.contains("is-hidden")) {
-        startGame();
+
+      if (isSwipe) {
+        if (msgOverlay.classList.contains("is-hidden")) {
+          game.jump();
+          game.restart();
+        } else {
+          startGame();
+        }
+      } else if (isTap) {
+        if (spawnFloatingCiallo(cx, cy)) sm.play();
+        if (!msgOverlay.classList.contains("is-hidden")) {
+          startGame();
+        }
       }
-    }
-  }, { passive: false });
+    },
+    { passive: false },
+  );
 </script>

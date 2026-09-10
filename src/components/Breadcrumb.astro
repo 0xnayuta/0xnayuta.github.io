@@ -47,7 +47,7 @@ if (breadcrumbList[0] === "posts") {
     breadcrumbList.splice(
       0,
       2,
-      t.pagination.pagedLabel(t.nav.posts, Number(breadcrumbList[1]))
+      t.pagination.pagedLabel(t.nav.posts, Number(breadcrumbList[1])),
     );
   }
 }
@@ -64,47 +64,39 @@ if (
   breadcrumbList.splice(
     1,
     2,
-    page === 1 ? tagName : t.pagination.pagedLabel(tagName, page)
+    page === 1 ? tagName : t.pagination.pagedLabel(tagName, page),
   );
 }
 ---
 
 <nav class="app-layout mt-8 mb-6" aria-label="breadcrumb">
-  <ul
-    class="font-light [&>li]:inline [&>li:not(:last-child)>a]:hover:opacity-100"
-  >
+  <ul class="font-light [&>li]:inline [&>li:not(:last-child)>a]:hover:opacity-100">
     <li>
       <a href={getRelativeLocaleUrl(locale, "")} class="opacity-80">
         {t.nav.home}
       </a>
-      <span aria-hidden="true" class="opacity-80">&gt;</span>
+      <span aria-hidden="true" class="opacity-80">
+        &gt;
+      </span>
     </li>
-    {
-      breadcrumbList.map((breadcrumb, index) =>
-        index + 1 === breadcrumbList.length ? (
-          <li>
-            <span
-              class="opacity-75"
-              aria-current="page"
-            >
-              {/* display localized label or decoded path segment */}
-              {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
-            </span>
-          </li>
-        ) : (
-          <li>
-            <a
-              href={getRelativeLocaleUrl(locale, breadcrumb)}
-              class="opacity-80"
-            >
-              {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
-            </a>
-            <span aria-hidden="true" class="opacity-80">
-              &gt;
-            </span>
-          </li>
-        )
-      )
-    }
+    {breadcrumbList.map((breadcrumb, index) =>
+      index + 1 === breadcrumbList.length ? (
+        <li>
+          <span class="opacity-75" aria-current="page">
+            {/* display localized label or decoded path segment */}
+            {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
+          </span>
+        </li>
+      ) : (
+        <li>
+          <a href={getRelativeLocaleUrl(locale, breadcrumb)} class="opacity-80">
+            {navLabels[breadcrumb] ?? decodeSegment(breadcrumb)}
+          </a>
+          <span aria-hidden="true" class="opacity-80">
+            &gt;
+          </span>
+        </li>
+      ),
+    )}
   </ul>
 </nav>

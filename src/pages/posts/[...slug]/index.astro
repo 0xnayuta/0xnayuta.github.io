@@ -84,7 +84,7 @@ if (typeof initOgImage === "string") {
 if (!ogImageUrl && config.features.dynamicOgImage) {
   const postUrl = getPostUrl(post.id, post.filePath, locale).replace(
     /\/+$/,
-    ""
+    "",
   );
   ogImageUrl = `${postUrl}/index.png`;
 }
@@ -162,7 +162,9 @@ const ogImage = ogImageUrl
     <EditPost class="sm:hidden" {hideEditPost} {post} />
 
     <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
+      {tags.map((tag) => (
+        <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />
+      ))}
     </ul>
 
     <BackToTopButton />
@@ -211,7 +213,7 @@ const ogImage = ogImageUrl
 
   function addHeadingLinks() {
     const headings = Array.from(
-      document.querySelectorAll("h2, h3, h4, h5, h6")
+      document.querySelectorAll("h2, h3, h4, h5, h6"),
     );
     for (const heading of headings) {
       heading.classList.add("group");
@@ -275,6 +277,6 @@ const ogImage = ogImageUrl
   attachCopyButtons();
 
   document.addEventListener("astro:after-swap", () =>
-    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
   );
 </script>
